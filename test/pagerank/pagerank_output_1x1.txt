@@ -1,0 +1,31 @@
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs iteration
+./aio_pagerank.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 20 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > iostat_pagerank.log&
+Aggregate degree ... 
+Reverse degree ... 
+Start pagerank computation ... 
+@level-1-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.96863 0 0(1.64377,3.9393)  0.0489504 3.24037 4885214720 9.81622
+@level-2-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.91421 0 0(1.41215,4.17085)  0.0226312 3.18783 4885214720 9.78812
+@level-3-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.91588 0 0(1.41802,4.17779)  0.0224819 3.17401 4885214720 9.78726
+@level-4-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.92495 0 0(1.40834,4.15607)  0.0221195 3.21596 4885214720 9.79672
+@level-5-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.94477 0 0(1.40971,4.14261)  0.0221636 3.24344 4885214720 9.81368
+@level-6-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.92777 0 0(1.40906,4.16326)  0.0223434 3.20774 4885214720 9.79788
+@level-7-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.92441 0 0(1.40384,4.13857)  0.0224607 3.23596 4885214720 9.79539
+@level-8-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.91662 0 0(1.40573,4.13747)  0.0224259 3.22684 4885214720 9.788
+@level-9-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.92261 0 0(1.40854,4.13755)  0.022593 3.22956 4885214720 9.79261
+@level-10-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.91815 0 0(1.40874,4.152)  0.0226178 3.21251 4885214720 9.78888
+@level-11-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.92399 0 0(1.40707,4.17442)  0.0224612 3.19554 4885214720 9.79397
+@level-12-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.9168 0 0(1.40582,4.13116)  0.0227478 3.23377 4885214720 9.78753
+@level-13-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.93456 0 0(1.4077,4.14192)  0.0225077 3.23672 4885214720 9.80396
+@level-14-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.93586 0 0(1.41176,4.17151)  0.0222292 3.20302 4885214720 9.80329
+@level-15-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.92283 0 0(1.408,4.13763)  0.0225759 3.23182 4885214720 9.79318
+@level-16-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.91807 0 0(1.40812,4.13226)  0.0222745 3.2317 4885214720 9.79002
+@level-17-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.91728 0 0(1.40587,4.12244)  0.0222769 3.24255 4885214720 9.78883
+@level-18-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.89886 0 0(1.4076,4.1515)  0.0222979 3.20191 4885214720 9.76972
+@level-19-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.92037 0 0(1.40416,4.1176)  0.0226574 3.25182 4885214720 9.79126
+@level-20-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 9.91712 0 0(1.40871,4.12865)  0.0225954 3.23431 4885214720 9.78803
+Total time: 198.484 second(s)
+Total io time: 111.127 second(s)
+Total comp time: 195.875 second(s)

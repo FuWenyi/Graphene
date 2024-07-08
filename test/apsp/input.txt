@@ -1,0 +1,15 @@
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 96 0.027878 9.05991e-06 0(0.00165701,0.000191927)  0.00182915 9.53674e-07 1024 2.38419e-05
+@level-1-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 6885 0.0334821 8.10623e-06 0(0.00780249,0.000328779)  0.00806403 7.15256e-06 71168 0.000121117
+@level-2-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 3885483 0.187846 0.000697851 0(0.0995708,0.020926)  0.0858331 0.00119853 67699200 0.0416958
+@level-3-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 51164490 4.92073 0.188854 0(3.39243,1.14573)  2.95493 0.0232027 3677943808 1.73234
+@level-4-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 65617366 6.20413 0.56715 0(4.60423,0.912454)  2.14047 0.0111916 4386047488 3.44856
+@level-5-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 41048423 6.16684 0.662191 0(4.91242,0.445403)  1.94672 0.0118103 4406492672 3.48708
+@level-6-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 9142636 4.13643 0.648926 0(2.83799,0.455525)  0.857217 0.0035882 2700388864 2.45931
+@level-7-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 1195377 1.84791 0.340046 0(1.15326,0.300496)  0.710785 0.000381947 1215575040 0.745374
+@level-8-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 138554 1.21582 0.145994 0(0.511555,0.517369)  0.801158 5.00679e-06 778859520 0.227891
+@level-9-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 16083 0.424957 0.013988 0(0.132485,0.240519)  0.310363 0.000424147 276417536 0.0646989
+@level-10-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 2106 0.085357 0.00168395 0(0.0403242,0.00644398)  0.0407031 0.000300646 27550720 0.00747681
+@level-11-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 340 0.0451829 0.000230074 0(0.00831628,0.000334978)  0.00830197 0.000179529 2087936 0.000948906
+@level-12-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 52 0.0400519 3.88622e-05 0(0.00352287,0.000363111)  0.00378847 4.76837e-06 274944 0.000121355
+@level-13-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 7 0.040391 7.86781e-06 0(0.00283003,0.00019908)  0.00302339 6.19888e-06 35840 1.97887e-05
+@level-14-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 1 0.0382261 2.14577e-06 0(0.00268817,9.98974e-05)  0.00278497 1.19209e-06 6656 7.15256e-06

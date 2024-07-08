@@ -1,0 +1,100 @@
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 5.06722 0 0(2.18292,1.51755)  0.119206 0.0929689 4885216768 4.1857
+Total time: 5.06722 second(s)
+Total io time: 3.70047 second(s)
+Total comp time: 4.1857 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 5.20017 0 0(1.88799,2.24571)  0.115723 0.12784 4885216768 4.84692
+Total time: 5.20017 second(s)
+Total io time: 4.1337 second(s)
+Total comp time: 4.84692 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 4.99574 0 0(1.54624,2.3511)  0.0983078 0.097877 4885216768 4.43334
+Total time: 4.99574 second(s)
+Total io time: 3.89734 second(s)
+Total comp time: 4.43334 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 5.01211 0 0(1.37555,2.25101)  0.111175 0.122881 4885216768 4.3111
+Total time: 5.01211 second(s)
+Total io time: 3.62656 second(s)
+Total comp time: 4.3111 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 4.93695 0 0(1.4687,2.41454)  0.168484 0.0917888 4885216768 4.30517
+Total time: 4.93695 second(s)
+Total io time: 3.88324 second(s)
+Total comp time: 4.30517 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 5.81979 0 0(2.10138,2.15379)  0.0951157 0.172913 4885216768 5.27787
+Total time: 5.81979 second(s)
+Total io time: 4.25517 second(s)
+Total comp time: 5.27787 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 4.97751 0 0(1.62173,2.16121)  0.125499 0.0959427 4885216768 4.27928
+Total time: 4.97751 second(s)
+Total io time: 3.78293 second(s)
+Total comp time: 4.27928 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 5.56509 0 0(2.09865,1.94528)  0.270918 0.118641 4885216768 4.54264
+Total time: 5.56509 second(s)
+Total io time: 4.04392 second(s)
+Total comp time: 4.54264 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 5.00801 0 0(1.91169,1.96358)  0.124922 0.0944211 4885216768 4.36905
+Total time: 5.00801 second(s)
+Total io time: 3.87526 second(s)
+Total comp time: 4.36905 second(s)
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_spmv.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > ./log/iostat_spmv.log&
+Start SpMV computation ... 
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 4.98132 0 0(1.36487,2.26902)  0.131219 0.100409 4885216768 4.14817
+Total time: 4.98132 second(s)
+Total io time: 3.63389 second(s)
+Total comp time: 4.14817 second(s)

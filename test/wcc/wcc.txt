@@ -1,0 +1,31 @@
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs
+./aio_wcc_hybrid.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 
+Vertex count: 41652219
+col-ranger file is found
+iostat -x 1 -k > iostat_wcc.log&
+Aggregate degree ... 
+Root is: 23934132, degree = 2317089
+Degree[23934132]=1259858
+Degree[23934132]=420862
+Degree[23934132]=636369
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 2317089 0.0302091 1.90735e-06 0(0.000716925,0)  0.000717878 0 9270272
+@level-1-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 14335057 2.88303 0.175724 0(2.09794,0.606107)  2.09901 0.000695944 2314833408
+@level-2-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 7520796 5.08811 0.478569 0(3.5755,0.28943)  2.36551 0.00716233 3883740672
+@level-3-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 1210746 1.91189 0.310875 0(1.42908,0.16797)  1.08189 0.000860691 1344199168
+@level-4-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 156793 1.20577 0.150223 0(0.637963,0.417432)  0.89686 3.12328e-05 849629696
+@level-5-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 17518 0.502564 0.0161929 0(0.226143,0.258487)  0.435784 0.000416517 374068224
+@level-6-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 2149 0.086658 0.00184202 0(0.0548203,0.0290952)  0.0781059 0.000184774 54277120
+@level-7-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 328 0.0130272 0.000177145 0(0.0121489,0.000224829)  0.0121026 0.000131845 4336640
+@level-8-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 55 0.00661516 1.90735e-05 0(0.00600171,0.00010705)  0.00603771 5.96046e-06 467456
+@level-9-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 9 0.00606585 2.86102e-06 0(0.00484872,0.000121832)  0.00496387 9.53674e-07 70144
+@level-10-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 3 0.00475192 9.53674e-07 0(0.00458622,0.000150919)  0.00473714 0 12800
+@level-11-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 0.00136304 0 0(0.00128317,7.70092e-05)  0.00136018 0 4608
+Largest WCC is detected
+Entering label propagation ...
+@level-11-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 2.33314 0.254463 0(1.47301,0.298055)  1.4541 1.93119e-05 1555135488
+WCC groups: 5920
+@level-12-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 0.898718 0.104363 0(0.386173,0.349201)  0.689074 0.000300169 594260480
+WCC groups: 5875
+@level-13-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize: 0 0.90309 0.104479 0(0.399462,0.339688)  0.693209 0.000284672 594260480
+WCC groups: 5875
+Total time: 15.875 second(s)
