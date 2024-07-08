@@ -151,11 +151,20 @@ void cache_driver::submit_io_req(index_t io_id)
 		index_t chunk_id = io_list[io_id]->chunk_id[i];
 		
 		double before = wtime();
+		#ifdef PM_MODE
+		auto ele = myfileMap[cache[chunk_id]->blk_beg_off]; 
+		io_prep_pread(&(io_list[io_id]->io_cbp[i]), 
+				io_fd,
+				cache[chunk_id]->buff, 
+				ele.size*sizeof(vertex_t),
+				ele.beg_blk*sizeof(vertex_t));			
+		#else
 		io_prep_pread(&(io_list[io_id]->io_cbp[i]), 
 				fd_csr,
 				cache[chunk_id]->buff, 
 				cache[chunk_id]->load_sz*sizeof(vertex_t),
 				cache[chunk_id]->blk_beg_off*sizeof(vertex_t));
+		#endif
 		prep_pread_time += wtime() - before;
 		//if(pread(fd_csr, cache[chunk_id]->buff, 
 		//			cache[chunk_id]->load_sz*sizeof(vertex_t),	
@@ -719,14 +728,54 @@ circle *cache_driver::get_chunk()
 void cache_driver::clean_caches()
 {
 //	if(circ_free_chunk->get_sz() == 0)
-		for(index_t i=0; i<num_chunks; i++)
+	for(index_t i=0; i<num_chunks; i++)
+	{
+		if(cache[i]->status == PROCESSED)
 		{
-			if(cache[i]->status == PROCESSED)
-			{
-				//avoid enqueued again
-				cache[i]->status = EVICTED;
-				circ_free_chunk->en_circle(i);
-			}
+			//avoid enqueued again
+			cache[i]->status = EVICTED;
+			circ_free_chunk->en_circle(i);
 		}
+	}
 }
 
+void cache_driver::read_map() {
+	int my_row = comp_tid / col_par;
+	int my_col = comp_tid % col_par;
+	char useio_filename[256];
+	char map_filename[256];
+	sprintf(useio_filename, "io/level_%drow_%d_col_%d.bin", level, my_row, my_col);
+	sprintf(map_filename, "map/level_%drow_%d_col_%d.bin", level, my_row, my_col);
+	io_fd = open(csr_filename, O_RDONLY | O_DIRECT| O_NOATIME);
+	if(io_fd == -1)
+	{
+		fprintf(stdout,"Wrong open %s\n",csr_filename);
+		perror("open");
+		exit(-1);
+	}
+	map_fd = fopen(map_filename, "rb");		// append binary mode
+    if (map_fd == NULL) {
+        perror("Failed to open file for reading");
+        return 1;
+    }
+
+	int data_to_read[3];
+	// 读取数据块
+	myfileMap.clear();
+    while (fread(data_to_read, sizeof(int), 3, map_fd) == 3) {
+        //printf("Read data: %d, %d, %d\n", data_to_read[0], data_to_read[1], data_to_read[2]);
+		if (myfileMap.count(data_to_read[0])) {
+			assert(0);
+			std::cout << "wrong\n";
+		} else {
+			myfileMap[data_to_read[0]] = {data_to_read[1], data_to_read[2]};
+		}
+    }
+
+    if (!feof(map_fd)) {
+        perror("Error reading from map file");
+        fclose(map_fd);
+        return 1;
+    }
+	fclose(map_fd);
+}

@@ -61,6 +61,11 @@ struct io_req
 	index_t num_ios;
 };
 
+struct IntPair {
+    int beg_blk;
+    int size;
+};
+
 #define READ_BLK 			(1<<24)
 //#define NUM_THDS  		16	
 //#define BLK_SZ				512

@@ -55,6 +55,11 @@ class cache_driver
 		// long submitted_req_count;//request总数
 		// long submitted_full_ctx_count;//满64个request的总数
 
+		// PM
+		int io_fd;
+		FILE *map_fd;
+		std::map<int, IntPair> myfileMap;
+
 	public:
 		cache_driver(){};
 		cache_driver(	
