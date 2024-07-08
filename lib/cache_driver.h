@@ -58,7 +58,7 @@ class cache_driver
 		// PM
 		int io_fd;
 		FILE *map_fd;
-		std::map<int, IntPair> myfileMap;
+		map<int, IntPair> myfileMap;
 
 	public:
 		cache_driver(){};
@@ -111,6 +111,9 @@ class cache_driver
 		circle* get_chunk();
 
 		void submit_io_req(index_t chunk_id);
+
+		// PM
+		void read_map(int level, int my_row, int my_col, int beg_header);
 };
 
 #endif

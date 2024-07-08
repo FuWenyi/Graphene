@@ -19,6 +19,7 @@
 #include <string.h>
 #include <unistd.h>
 
+#define BUFFER_SIZE 0x200000
 
 inline bool is_active
 (index_t vert_id,
@@ -262,8 +263,8 @@ int main(int argc, char **argv)
 				int my_col = comp_tid % col_par;
 				char useio_filename[256];
 				char map_filename[256];
-				sprintf(useio_filename, "io/level_%drow_%d_col_%d.bin", level, my_row, my_col);
-				sprintf(map_filename, "map/level_%drow_%d_col_%d.bin", level, my_row, my_col);
+				sprintf(useio_filename, "%s/pm/io_level_%drow_%d_col_%d.bin", beg_header, level, my_row, my_col);
+				sprintf(map_filename, "%s/pm/map_level_%drow_%d_col_%d.bin", beg_header, level, my_row, my_col);
 				FILE *io_fd = fopen(useio_filename, "ab");		// append binary mode
 				FILE *map_fd = fopen(map_filename, "ab");		// append binary mode
 				int io_file_offset = 0;
@@ -456,7 +457,9 @@ finish_point:
 			total_vertex += front_count;
 
 			front_count = 0;
-			++level;
+			++ level;
+			++ it->my_level;
+			assert(level == it->my_level);
 //#pragma omp barrier
 			//if(!tid) std::cout<<"\n\n\n";
 //#pragma omp barrier

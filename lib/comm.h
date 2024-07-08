@@ -22,7 +22,9 @@
 //#include "libaio.h"
 #include <limits.h>
 #include <sstream>
+#include <map>
 
+using namespace std;
 #define errExit(msg) do { perror(msg); exit(EXIT_FAILURE); } while (0)
 
 //#define MAX_NUM_ELEMENTS (long)134217728 
@@ -55,8 +57,8 @@ struct chunk
 
 struct io_req 
 {
-	io_context_t ctx;//aio context
-	struct iocb *io_cbp;//aio call-back function pointer
+	io_context_t ctx;          //aio context
+	struct iocb *io_cbp;       //aio call-back function pointer
 	index_t *chunk_id;
 	index_t num_ios;
 };

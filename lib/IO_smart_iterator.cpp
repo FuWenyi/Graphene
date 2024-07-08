@@ -48,28 +48,6 @@ IO_smart_iterator::IO_smart_iterator(
 	
 	is_bsp_done = false;
 	is_io_done = false;
-
-//	circ_free_buff = new circle(num_buffs);
-//	circ_load_buff = new circle(num_buffs);
-//	circ_free_buff -> reset_circle();
-//	circ_load_buff -> reset_circle();
-//	for(int i = 0; i < num_buffs; i ++)
-//	{
-//		buff_src_vert[i] = (vertex_t *)mmap(NULL, 
-//				ring_vert_count*sizeof(vertex_t),
-//				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-//				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-//		buff_dest[i] = (vertex_t *)mmap(NULL, 
-//				ring_vert_count*sizeof(vertex_t),
-//				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-//				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-//		if(buff_src_vert[i]==MAP_FAILED ||
-//				buff_dest[i] == MAP_FAILED)
-//			perror("buff_source buff_dest mmap");
-//		
-//		buff_edge_count[i] = 0;
-//		circ_free_buff->en_circle(i);
-//	}
 	
 	front_count = front_count_ptr;
 	front_queue = front_queue_ptr;
@@ -137,29 +115,6 @@ IO_smart_iterator::IO_smart_iterator(
 	is_bsp_done = false;
 	is_io_done = false;
 	
-//	circ_free_buff = new circle(num_buffs);
-//	circ_load_buff = new circle(num_buffs);
-//	circ_free_buff -> reset_circle();
-//	circ_load_buff -> reset_circle();
-//	for(int i = 0; i < num_buffs; i ++)
-//	{
-//		buff_source[i] = (sa_t *)mmap(NULL, 
-//				ring_vert_count*sizeof(sa_t),
-//				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-//				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-//		buff_dest[i] = (vertex_t *)mmap(NULL, 
-//				ring_vert_count*sizeof(vertex_t),
-//				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-//				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-//
-//		if(buff_source[i]==MAP_FAILED ||
-//				buff_dest[i] == MAP_FAILED)
-//			perror("buff_source buff_dest mmap");
-//		
-//		buff_edge_count[i] = 0;
-//		circ_free_buff->en_circle(i);
-//	}
-	
 	front_count = front_count_ptr;
 	front_queue = front_queue_ptr;
 	col_ranger = col_ranger_ptr;
@@ -223,6 +178,7 @@ IO_smart_iterator::IO_smart_iterator(
 	is_active=p_func;
 	my_row = comp_tid/num_cols;
 	my_col = comp_tid%num_cols;
+	beg_header_ = beg_header;
 
 	char beg_filename[256];
 	char csr_filename[256];
@@ -702,7 +658,7 @@ void IO_smart_iterator::load_key(sa_t criterion)
 	//std::cout << " end:" << wtime() - this->start_time << "\n";
 
 #ifdef PM_MODE
-	cd->read_map();
+	cd->read_map(my_level, my_row, my_col, beg_header_);
 #endif
 	cd->load_chunk();
 	cd->get_chunk();

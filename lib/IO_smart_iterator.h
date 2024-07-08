@@ -79,6 +79,9 @@ class IO_smart_iterator
 		vertex_t *col_ranger;
 		cb_func is_active;
 
+		// PM
+		const char *beg_header_;
+
 	public:
 		IO_smart_iterator(){};
 		

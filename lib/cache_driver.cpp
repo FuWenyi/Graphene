@@ -722,6 +722,7 @@ circle *cache_driver::get_chunk()
 	
 	io_poll_time += (wtime() - this_time);
 	//fclose(fp);
+	close(io_fd);
 	return circ_load_chunk;
 }
 
@@ -739,24 +740,23 @@ void cache_driver::clean_caches()
 	}
 }
 
-void cache_driver::read_map() {
-	int my_row = comp_tid / col_par;
-	int my_col = comp_tid % col_par;
+void cache_driver::read_map(int level, int my_row, int my_col, int beg_header) {
 	char useio_filename[256];
 	char map_filename[256];
-	sprintf(useio_filename, "io/level_%drow_%d_col_%d.bin", level, my_row, my_col);
-	sprintf(map_filename, "map/level_%drow_%d_col_%d.bin", level, my_row, my_col);
-	io_fd = open(csr_filename, O_RDONLY | O_DIRECT| O_NOATIME);
+	cout << "level: " << level << " row: " << my_row << " col:" << my_col << " header: " << beg_header << "\n";
+	sprintf(useio_filename, "%s/pm/io_level_%drow_%d_col_%d.bin", beg_header, level, my_row, my_col);
+	sprintf(map_filename, "%s/pm/map_level_%drow_%d_col_%d.bin", beg_header, level, my_row, my_col);
+	io_fd = open(useio_filename, O_RDONLY | O_DIRECT| O_NOATIME);
 	if(io_fd == -1)
 	{
-		fprintf(stdout,"Wrong open %s\n",csr_filename);
+		fprintf(stdout,"Wrong open %s\n", useio_filename);
 		perror("open");
 		exit(-1);
 	}
 	map_fd = fopen(map_filename, "rb");		// append binary mode
     if (map_fd == NULL) {
         perror("Failed to open file for reading");
-        return 1;
+        assert(0);
     }
 
 	int data_to_read[3];
@@ -775,7 +775,7 @@ void cache_driver::read_map() {
     if (!feof(map_fd)) {
         perror("Error reading from map file");
         fclose(map_fd);
-        return 1;
+        assert(0);
     }
 	fclose(map_fd);
 }
