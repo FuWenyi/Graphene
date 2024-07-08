@@ -255,6 +255,20 @@ int main(int argc, char **argv)
 				//fprintf(fp_nebr,"\n level = %d\n", level);
 				// total_useful_sz 代表实际真正用到的边 IO
 				comp_tm_beg =  wtime();
+				
+				// create useful io/map file for every level
+				#ifdef PRE_MODE
+				int my_row = comp_tid / col_par;
+				int my_col = comp_tid % col_par;
+				char useio_filename[256];
+				char map_filename[256];
+				sprintf(useio_filename, "io/level_%drow_%d_col_%d.bin", level, my_row, my_col);
+				sprintf(map_filename, "map/level_%drow_%d_col_%d.bin", level, my_row, my_col);
+				FILE *io_fd = fopen(useio_filename, "ab");		// append binary mode
+				FILE *map_fd = fopen(map_filename, "ab");		// append binary mode
+				int io_file_offset = 0;
+				#endif
+
 				while(true)
 				{	
 					int chunk_id = -1;
@@ -281,6 +295,16 @@ int main(int argc, char **argv)
 					int head = it->cd->circ_load_chunk->head;
 					//fprintf(fp_nebr, "chunk_id = %d, load chunk head = %d, head id = %d\n", chunk_id, head, it->cd->circ_load_chunk->array[head]);
 					//fprintf(fp_nebr,"beg_vert = %d, chunk id = %d, num_verts = %d, chunk status = %d\n", pinst->beg_vert, chunk_id, num_verts, pinst->status);
+
+					// pre compute useful data
+					#ifdef PRE_MODE
+					void *buffer = malloc(BUFFER_SIZE);
+					if (buffer == NULL) {
+						perror("Error allocating memory");
+						break;
+					}
+					int buffer_offset = 0;
+					#endif
 
 					//process one chunk
 					while(true)
@@ -311,8 +335,19 @@ int main(int argc, char **argv)
 									//fprintf(fp_nebr,"%d\t%d\t%d\t%d\t%d\n", vert_id, sa[vert_id], nebr, sa[nebr],chunk_id);
 								}
 							}
+
+							#ifdef PRE_MODE
+							if (buffer_offset + useful_sz > BUFFER_SIZE) {
+								perror("Error write to filr");
+								free(buffer);
+								buffer_offset = 0;
+							}
+
+							// append useful data to buffer
+							memcpy(buffer + buffer_offset, &pinst->buff[beg], useful_sz);
+							#endif
 						}
-						++vert_id;
+						++ vert_id;
 
 						if(vert_id >= it->row_ranger_end) {
 							//fprintf(fp_nebr,"1. end_vert = %d, chunk id = %d; ",vert_id, chunk_id);
@@ -328,107 +363,40 @@ int main(int argc, char **argv)
 					pinst->status = EVICTED;
 					//fprintf(fp_nebr,"chunk status = %d\n", pinst->status);
 					assert(it->cd->circ_free_chunk->en_circle(chunk_id)!= -1);
+
+					// align buffer to block-grain and append it io to io-file and index to map-file
+					#ifdef PRE_MODE
+					int align_offset = (buffer_offset + (BLK_SZ - 1)) & ~(BLK_SZ - 1);
+					if (align_offset > 0) {
+        				if (fwrite(buffer, 1, align_offset, io_fd) != align_offset) {
+            				perror("Error writing to io file");
+        				}
+    				} else {
+						assert(0);
+					}
+					free(buffer);
+					
+					int data[3] = {blk_beg_off, io_file_offset, align_offset};
+					if (fwrite(data, sizeof(int), 3, map_fd) != (sizeof(int) * 3)) {
+            				perror("Error writing to map file");
+        			}
+					io_file_offset += align_offset;
+					#endif
 				}
-
-				//work-steal
-			//	for(int ii = tid - (col_par * 2); ii <= tid + (col_par * 2) ; ii += (col_par *4))
-			//	{
-			//		if(ii < 0 || ii >= NUM_THDS) continue;
-			//		IO_smart_iterator* it_work_steal = it_comm[ii];			
-			//		while(true)
-			//		{	
-			//			int chunk_id = -1;
-			//			double blk_tm = wtime();
-			//			while((chunk_id = it_work_steal->cd->circ_load_chunk->de_circle())
-			//					== -1)
-			//			{
-			//				if(it_work_steal->is_bsp_done)
-			//				{
-			//					chunk_id = it_work_steal->cd->circ_load_chunk->de_circle();
-			//					break;
-			//				}
-			//			}
-			//			it_work_steal->wait_io_time += (wtime() - blk_tm);
-
-			//			if(chunk_id == -1) break;
-			//			
-			//			//printf("%dhelps%d-for%d\n", tid, ii, chunk_id);
-			//			struct chunk *pinst = it_work_steal->cd->cache[chunk_id];	
-			//			index_t blk_beg_off = pinst->blk_beg_off;
-			//			index_t num_verts = pinst->load_sz;
-			//			vertex_t vert_id = pinst->beg_vert;
-
-			//			//process one chunk
-			//			while(true)
-			//			{
-			//				if(sa[vert_id] == level)
-			//				{
-			//					index_t beg = it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg] 
-			//						- blk_beg_off;
-			//					index_t end = beg + it_work_steal->beg_pos_ptr[vert_id + 1 - 
-			//						it_work_steal->row_ranger_beg]- 
-			//						it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg];
-
-			//					//possibly vert_id starts from preceding data block.
-			//					//there by beg<0 is possible
-			//					if(beg<0) beg = 0;
-
-			//					if(end>num_verts) end = num_verts;
-			//					for( ;beg<end; ++beg)
-			//					{
-			//						vertex_t nebr = pinst->buff[beg];
-			//						if(sa[nebr] == INFTY)
-			//						{
-			//							sa[nebr]=level+1;
-			//							if(front_count <= it->col_ranger_end - it->col_ranger_beg)
-			//								it->front_queue[comp_tid][front_count] = nebr;
-			//							front_count++;
-			//						}
-			//					}
-			//				}
-			//				++vert_id;
-
-			//				if(vert_id >= it_work_steal->row_ranger_end) break;
-			//				if(it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg]
-			//						- blk_beg_off > num_verts) 
-			//					break;
-			//			}
-
-			//			pinst->status = EVICTED;
-			//			assert(it_work_steal->cd->circ_free_chunk->en_circle(chunk_id)!= -1);
-			//		}
-			//	}
 
 				it->front_count[comp_tid] = front_count;
 
 				//记录本level的计算时间
 				comp_tm_end = wtime() - comp_tm_beg - it->wait_io_time;
+
+				// close file
+				fclose(io_fd);
+				fclose(map_fd);
 			}
 			else //1为IO线程
 			{
 				while(it->is_bsp_done == false)
 				{
-					//if(it->circ_free_buff->get_sz() == 0)
-					//{
-					//	printf("worked\n");
-					//	int curr_buff = it->next(-1);
-					//	assert(curr_buff != -1);
-					//	neighbors = it -> buff_dest[curr_buff];
-					//	index_t buff_edge_count = it -> buff_edge_count[curr_buff];
-					//	//nebr_chk += buff_edge_count;
-					//	for(long i = 0;i < buff_edge_count; i++)
-					//	{
-					//		vertex_t nebr = neighbors[i];
-					//		if(sa[nebr]==INFTY)
-					//		{
-					//			//printf("new-front: %u\n", nebr);
-					//			sa[nebr]=level+1;
-					//			front_count++;
-					//		}
-					//	}
-					//	it->circ_free_buff->en_circle(curr_buff);
-					//}
-
 					it->load_key(level);
 					//it->load_key_iolist(level);
 				}

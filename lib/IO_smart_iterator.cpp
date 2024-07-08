@@ -701,10 +701,12 @@ void IO_smart_iterator::load_key(sa_t criterion)
 	this->wait_comp_time += (wtime() - blk_tm);
 	//std::cout << " end:" << wtime() - this->start_time << "\n";
 
-	//cd->get_chunk();
+#ifdef PM_MODE
+	cd->read_map();
+#endif
 	cd->load_chunk();
 	cd->get_chunk();
-	//cd->load_chunk();
+
 	if((cd->circ_load_chunk->is_empty()) &&
 		(cd->circ_free_chunk->is_full()) &&
 		(cd->circ_free_ctx->is_full()) &&
