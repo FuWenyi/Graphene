@@ -18,6 +18,7 @@
 #include <assert.h>
 #include <string.h>
 #include <unistd.h>
+#include <iomanip>
 
 #define BUFFER_SIZE 0x200000
 
@@ -106,7 +107,7 @@ int main(int argc, char **argv)
 	remove("request_number.txt");
 
 	char cmd[256];
-	sprintf(cmd,"%s","iostat -x 1 -k -p > ./random_20_log/iostat_bfs.log&");
+	//sprintf(cmd,"%s","iostat -x 1 -k -p > ./random_20_log/iostat_bfs.log&");
 	std::cout<<cmd<<"\n";
 	
 	int *semaphore_acq = new int[1];
@@ -263,11 +264,27 @@ int main(int argc, char **argv)
 				int my_col = comp_tid % col_par;
 				char useio_filename[256];
 				char map_filename[256];
-				sprintf(useio_filename, "%s/pm/io_level_%drow_%d_col_%d.bin", beg_header, level, my_row, my_col);
-				sprintf(map_filename, "%s/pm/map_level_%drow_%d_col_%d.bin", beg_header, level, my_row, my_col);
-				FILE *io_fd = fopen(useio_filename, "ab");		// append binary mode
-				FILE *map_fd = fopen(map_filename, "ab");		// append binary mode
-				int io_file_offset = 0;
+				sprintf(useio_filename, "%s/pm/io_level%d_row%d_col%d.bin", beg_dir, level, my_row, my_col);
+				sprintf(map_filename, "%s/pm/map_level%d_row%d_col%d.bin", beg_dir, level, my_row, my_col);
+				cout << "useio file name: " << useio_filename << "\n";
+				FILE *io_fd = fopen(useio_filename, "wb");		// append binary mode
+				FILE *map_fd = fopen(map_filename, "wb");		// append binary mode
+				if (io_fd == NULL) {
+        			perror("Failed to open io file");
+        			assert(0);
+    			}
+				if (map_fd == NULL) {
+        			perror("Failed to open map file");
+        			assert(0);
+    			}
+				index_t io_file_offset = 0;
+				char *buffer = new char[BUFFER_SIZE];
+				if (buffer == NULL) {
+					perror("Error allocating memory");
+					break;
+				}
+				index_t buffer_offset = 0;
+				index_t size = 0;
 				#endif
 
 				while(true)
@@ -299,12 +316,12 @@ int main(int argc, char **argv)
 
 					// pre compute useful data
 					#ifdef PRE_MODE
-					void *buffer = malloc(BUFFER_SIZE);
-					if (buffer == NULL) {
-						perror("Error allocating memory");
-						break;
-					}
-					int buffer_offset = 0;
+					buffer_offset = 0;
+					size = 0;
+					#endif
+
+                    #ifdef PM_MODE
+						index_t beg_of = 0;
 					#endif
 
 					//process one chunk
@@ -324,9 +341,17 @@ int main(int argc, char **argv)
 
 							if(end>num_verts) end = num_verts;
 							useful_sz += (end - beg) * sizeof(vertex_t);
+							#ifdef PRE_MODE
+								size = (end - beg) * sizeof(vertex_t);
+							#endif
 							for( ;beg<end; ++beg)
 							{
+								#ifndef PM_MODE
 								vertex_t nebr = pinst->buff[beg];
+								#else
+								vertex_t nebr = pinst->buff[beg_of];
+								++ bef_of;
+								#endif
 								if(sa[nebr] == INFTY)
 								{
 									sa[nebr]=level+1;
@@ -338,14 +363,16 @@ int main(int argc, char **argv)
 							}
 
 							#ifdef PRE_MODE
-							if (buffer_offset + useful_sz > BUFFER_SIZE) {
-								perror("Error write to filr");
+							if (buffer_offset + size > BUFFER_SIZE) {
+								perror("Error write to file");
 								free(buffer);
 								buffer_offset = 0;
 							}
 
 							// append useful data to buffer
-							memcpy(buffer + buffer_offset, &pinst->buff[beg], useful_sz);
+							//cout << "buffer_offset: " << buffer_offset << " size: " << size << "\n";
+							memcpy((char *)buffer + buffer_offset, &pinst->buff[beg], size);
+							buffer_offset += size;
 							#endif
 						}
 						++ vert_id;
@@ -367,18 +394,27 @@ int main(int argc, char **argv)
 
 					// align buffer to block-grain and append it io to io-file and index to map-file
 					#ifdef PRE_MODE
-					int align_offset = (buffer_offset + (BLK_SZ - 1)) & ~(BLK_SZ - 1);
+					index_t align_offset = (buffer_offset + (BLK_SZ - 1)) & ~(BLK_SZ - 1);
 					if (align_offset > 0) {
-        				if (fwrite(buffer, 1, align_offset, io_fd) != align_offset) {
-            				perror("Error writing to io file");
+						int write_num = 0;
+						if (!io_fd) {
+							perror("fd error");
+						}
+						if (!buffer) {
+							perror("buffer error");
+						}
+        				if ((write_num = fwrite((char*)buffer, 1, align_offset, io_fd)) != align_offset) {
+            				//cout << "write: " << write_num << " align: " << align_offset << " buffer: " << buffer_offset << "\n";
+							perror("Error writing to io file");
         				}
+						//cout << "write: " << write_num << " align: " << align_offset << " buffer: " << buffer_offset << "\n";
     				} else {
-						assert(0);
+						//cout << "Buffer Empty\n";
+						//assert(0);
 					}
-					free(buffer);
 					
-					int data[3] = {blk_beg_off, io_file_offset, align_offset};
-					if (fwrite(data, sizeof(int), 3, map_fd) != (sizeof(int) * 3)) {
+					index_t data[3] = {blk_beg_off, io_file_offset, align_offset};
+					if (fwrite(data, sizeof(index_t), 3, map_fd) != 3) {
             				perror("Error writing to map file");
         			}
 					io_file_offset += align_offset;
@@ -391,8 +427,12 @@ int main(int argc, char **argv)
 				comp_tm_end = wtime() - comp_tm_beg - it->wait_io_time;
 
 				// close file
+				#ifdef PRE_MODE
 				fclose(io_fd);
 				fclose(map_fd);
+				delete[] buffer;
+				++ it->my_level;
+				#endif
 			}
 			else //1为IO线程
 			{
@@ -458,7 +498,7 @@ finish_point:
 
 			front_count = 0;
 			++ level;
-			++ it->my_level;
+			//cout << "level: " << (int)level << " " << (int)it->my_level << "\n";
 			assert(level == it->my_level);
 //#pragma omp barrier
 			//if(!tid) std::cout<<"\n\n\n";
@@ -471,10 +511,10 @@ finish_point:
 			std::cout<<"Total io time: "<<io_total_tm<<" second(s)\n";
 			std::cout<<"Total comp time: "<<comp_total_tm<<" second(s)\n";
 			std::cout<<"Total vertex: "<<total_vertex<<"\n";
-			std::cout<<"Total io(0-15): "<<total_io_submit_16_num[0]<<" "
+			/*std::cout<<"Total io(0-15): "<<total_io_submit_16_num[0]<<" "
 					 <<"Total io(16-31): "<<total_io_submit_16_num[1]<<" "
 					 <<"Total io(32-47): "<<total_io_submit_16_num[2]<<" "
-					 <<"Total io(48-63): "<<total_io_submit_16_num[3]<<"\n";
+					 <<"Total io(48-63): "<<total_io_submit_16_num[3]<<"\n"; */
 		} 
 		
 		if((tid & 1) == 0) delete it;

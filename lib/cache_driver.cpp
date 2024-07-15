@@ -722,7 +722,9 @@ circle *cache_driver::get_chunk()
 	
 	io_poll_time += (wtime() - this_time);
 	//fclose(fp);
+	#ifdef PM_MODE
 	close(io_fd);
+	#endif
 	return circ_load_chunk;
 }
 
@@ -740,12 +742,13 @@ void cache_driver::clean_caches()
 	}
 }
 
-void cache_driver::read_map(int level, int my_row, int my_col, int beg_header) {
+#ifdef PM_MODE
+void cache_driver::read_map(int level, int my_row, int my_col, int beg_dir) {
 	char useio_filename[256];
 	char map_filename[256];
-	cout << "level: " << level << " row: " << my_row << " col:" << my_col << " header: " << beg_header << "\n";
-	sprintf(useio_filename, "%s/pm/io_level_%drow_%d_col_%d.bin", beg_header, level, my_row, my_col);
-	sprintf(map_filename, "%s/pm/map_level_%drow_%d_col_%d.bin", beg_header, level, my_row, my_col);
+	cout << "level: " << level << " row: " << my_row << " col:" << my_col << " dir: " << beg_dir << "\n";
+	sprintf(useio_filename, "%s/pm/io_level%d_row%d_col%d.bin", beg_dir, level, my_row, my_col);
+	sprintf(map_filename, "%s/pm/map_level%d_row%d_col%d.bin", beg_dir, level, my_row, my_col);
 	io_fd = open(useio_filename, O_RDONLY | O_DIRECT| O_NOATIME);
 	if(io_fd == -1)
 	{
@@ -759,10 +762,10 @@ void cache_driver::read_map(int level, int my_row, int my_col, int beg_header) {
         assert(0);
     }
 
-	int data_to_read[3];
+	index_t data_to_read[3];
 	// 读取数据块
 	myfileMap.clear();
-    while (fread(data_to_read, sizeof(int), 3, map_fd) == 3) {
+    while (fread(data_to_read, sizeof(index_t), 3, map_fd) == 3) {
         //printf("Read data: %d, %d, %d\n", data_to_read[0], data_to_read[1], data_to_read[2]);
 		if (myfileMap.count(data_to_read[0])) {
 			assert(0);
@@ -779,3 +782,4 @@ void cache_driver::read_map(int level, int my_row, int my_col, int beg_header) {
     }
 	fclose(map_fd);
 }
+#endif

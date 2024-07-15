@@ -178,7 +178,7 @@ IO_smart_iterator::IO_smart_iterator(
 	is_active=p_func;
 	my_row = comp_tid/num_cols;
 	my_col = comp_tid%num_cols;
-	beg_header_ = beg_header;
+	beg_dir_ = beg_dir;
 
 	char beg_filename[256];
 	char csr_filename[256];
@@ -226,7 +226,7 @@ IO_smart_iterator::IO_smart_iterator(
 		ret=pread(fd_beg, beg_pos+ptr/sizeof(index_t), read_sz, ptr);
 		if(ret<=0)
 			perror("pread");
-		
+		//printf("Here3\n");
 		if(ret!=read_sz) break;
 		ptr+= read_sz;
 	}
@@ -658,7 +658,7 @@ void IO_smart_iterator::load_key(sa_t criterion)
 	//std::cout << " end:" << wtime() - this->start_time << "\n";
 
 #ifdef PM_MODE
-	cd->read_map(my_level, my_row, my_col, beg_header_);
+	cd->read_map(my_level, my_row, my_col, beg_dir_);
 #endif
 	cd->load_chunk();
 	cd->get_chunk();

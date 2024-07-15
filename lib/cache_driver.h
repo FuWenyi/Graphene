@@ -56,9 +56,11 @@ class cache_driver
 		// long submitted_full_ctx_count;//满64个request的总数
 
 		// PM
+		#ifdef PM_MODE
 		int io_fd;
 		FILE *map_fd;
-		map<int, IntPair> myfileMap;
+		#endif
+		map<index_t, LongPair> myfileMap;
 
 	public:
 		cache_driver(){};
@@ -113,7 +115,9 @@ class cache_driver
 		void submit_io_req(index_t chunk_id);
 
 		// PM
-		void read_map(int level, int my_row, int my_col, int beg_header);
+		#ifdef PM_MODE
+		void read_map(int level, int my_row, int my_col, int beg_dir);
+		#endif
 };
 
 #endif

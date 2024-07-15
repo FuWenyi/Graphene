@@ -80,7 +80,7 @@ class IO_smart_iterator
 		cb_func is_active;
 
 		// PM
-		const char *beg_header_;
+		const char *beg_dir_;
 
 	public:
 		IO_smart_iterator(){};

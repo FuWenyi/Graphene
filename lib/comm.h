@@ -63,9 +63,9 @@ struct io_req
 	index_t num_ios;
 };
 
-struct IntPair {
-    int beg_blk;
-    int size;
+struct LongPair {
+    index_t beg_blk;
+    index_t size;
 };
 
 #define READ_BLK 			(1<<24)
