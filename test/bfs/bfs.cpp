@@ -318,6 +318,10 @@ int main(int argc, char **argv)
 					#ifdef PRE_MODE
 					buffer_offset = 0;
 					size = 0;
+					
+					if (!io_file_offset) {
+						cout << "first blk_beg_off: " << blk_beg_off << "\n";
+					}
 					#endif
 
                     #ifdef PM_MODE
@@ -329,6 +333,10 @@ int main(int argc, char **argv)
 					{
 						if(sa[vert_id] == level)
 						{
+							#ifdef PRE_MODE
+							if (!io_file_offset && !buffer_offset) 
+								cout << "first vertex: " << vert_id << " nebor: ";
+							#endif
 							index_t beg = beg_pos[vert_id - it->row_ranger_beg] 
 								- blk_beg_off;
 							index_t end = beg + beg_pos[vert_id + 1 - 
@@ -352,6 +360,10 @@ int main(int argc, char **argv)
 								vertex_t nebr = pinst->buff[beg_of];
 								++ bef_of;
 								#endif
+								#ifdef PRE_MODE
+								if (!io_file_offset && !buffer_offset) 
+									cout << (int)nebr << " ";
+								#endif
 								if(sa[nebr] == INFTY)
 								{
 									sa[nebr]=level+1;
@@ -371,7 +383,9 @@ int main(int argc, char **argv)
 
 							// append useful data to buffer
 							//cout << "buffer_offset: " << buffer_offset << " size: " << size << "\n";
-							memcpy((char *)buffer + buffer_offset, &pinst->buff[beg], size);
+							memcpy((char *)buffer + buffer_offset, &pinst->buff[end-(size/sizeof(vertex_t))], size);
+							if (!io_file_offset && !buffer_offset) 
+								cout << "buffer: " << *(int*)(buffer) << " nebor: ";
 							buffer_offset += size;
 							#endif
 						}
@@ -417,9 +431,15 @@ int main(int argc, char **argv)
 					if (fwrite(data, sizeof(index_t), 3, map_fd) != 3) {
             				perror("Error writing to map file");
         			}
+					if (!io_file_offset) 
+						cout << "\nfirst align_offset: " << align_offset << "\n";
 					io_file_offset += align_offset;
 					#endif
 				}
+
+				#ifdef PRE_MODE
+				cout << "file length: " << io_file_offset << "\n";
+				#endif
 
 				it->front_count[comp_tid] = front_count;
 
