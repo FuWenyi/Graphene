@@ -234,6 +234,7 @@ int main(int argc, char **argv)
 			}
 
 			double ltm=wtime();
+			double rmptm;
 			convert_tm=wtime();
 			//std::cout << "[COMP] convert start time:" << convert_tm - start_tm;  
 			if((tid & 1) == 0)
@@ -266,7 +267,9 @@ int main(int argc, char **argv)
 				char map_filename[256];
 				sprintf(useio_filename, "%s/pm/io_level%d_row%d_col%d.bin", beg_dir, level, my_row, my_col);
 				sprintf(map_filename, "%s/pm/map_level%d_row%d_col%d.bin", beg_dir, level, my_row, my_col);
+				#ifdef DEBUG
 				cout << "useio file name: " << useio_filename << "\n";
+				#endif
 				FILE *io_fd = fopen(useio_filename, "wb");		// append binary mode
 				FILE *map_fd = fopen(map_filename, "wb");		// append binary mode
 				if (io_fd == NULL) {
@@ -285,6 +288,9 @@ int main(int argc, char **argv)
 				}
 				index_t buffer_offset = 0;
 				index_t size = 0;
+				#endif
+				#ifdef PM_MODE
+				index_t chunk_num = 0;
 				#endif
 
 				while(true)
@@ -318,14 +324,16 @@ int main(int argc, char **argv)
 					#ifdef PRE_MODE
 					buffer_offset = 0;
 					size = 0;
-					
+					#ifdef DEBUG
 					if (!io_file_offset) {
 						cout << "first blk_beg_off: " << blk_beg_off << "\n";
 					}
 					#endif
+					#endif
 
                     #ifdef PM_MODE
 						index_t beg_of = 0;
+						++ chunk_num;
 					#endif
 
 					//process one chunk
@@ -333,10 +341,17 @@ int main(int argc, char **argv)
 					{
 						if(sa[vert_id] == level)
 						{
+							#ifdef DEBUG
 							#ifdef PRE_MODE
 							if (!io_file_offset && !buffer_offset) 
 								cout << "first vertex: " << vert_id << " nebor: ";
 							#endif
+							#ifdef PM_MODE
+							if (chunk_num == 1 && beg_of == 0)
+								cout << "first vertex: " << vert_id << " nebor: ";
+							#endif
+							#endif
+
 							index_t beg = beg_pos[vert_id - it->row_ranger_beg] 
 								- blk_beg_off;
 							index_t end = beg + beg_pos[vert_id + 1 - 
@@ -358,11 +373,18 @@ int main(int argc, char **argv)
 								vertex_t nebr = pinst->buff[beg];
 								#else
 								vertex_t nebr = pinst->buff[beg_of];
-								++ bef_of;
+								#ifdef DEBUG
+								if (chunk_num == 1 && beg_of < (end-beg))
+									cout << (int)nebr << " ";
 								#endif
+								++ beg_of;
+								#endif
+
 								#ifdef PRE_MODE
+								#ifdef DEBUG
 								if (!io_file_offset && !buffer_offset) 
 									cout << (int)nebr << " ";
+								#endif
 								#endif
 								if(sa[nebr] == INFTY)
 								{
@@ -373,7 +395,12 @@ int main(int argc, char **argv)
 									//fprintf(fp_nebr,"%d\t%d\t%d\t%d\t%d\n", vert_id, sa[vert_id], nebr, sa[nebr],chunk_id);
 								}
 							}
-
+							#ifdef PM_MODE
+							#ifdef DEBUG
+							if (vert_id == pinst->beg_vert && chunk_num == 1)
+								cout << "\n";
+							#endif
+							#endif
 							#ifdef PRE_MODE
 							if (buffer_offset + size > BUFFER_SIZE) {
 								perror("Error write to file");
@@ -384,8 +411,10 @@ int main(int argc, char **argv)
 							// append useful data to buffer
 							//cout << "buffer_offset: " << buffer_offset << " size: " << size << "\n";
 							memcpy((char *)buffer + buffer_offset, &pinst->buff[end-(size/sizeof(vertex_t))], size);
+							#ifdef DEBUG
 							if (!io_file_offset && !buffer_offset) 
 								cout << "buffer: " << *(int*)(buffer) << " nebor: ";
+							#endif
 							buffer_offset += size;
 							#endif
 						}
@@ -431,14 +460,18 @@ int main(int argc, char **argv)
 					if (fwrite(data, sizeof(index_t), 3, map_fd) != 3) {
             				perror("Error writing to map file");
         			}
+					#ifdef DEBUG
 					if (!io_file_offset) 
 						cout << "\nfirst align_offset: " << align_offset << "\n";
+					#endif
 					io_file_offset += align_offset;
 					#endif
 				}
 
+				#ifdef DEBUG
 				#ifdef PRE_MODE
 				cout << "file length: " << io_file_offset << "\n";
+				#endif
 				#endif
 
 				it->front_count[comp_tid] = front_count;
@@ -451,16 +484,29 @@ int main(int argc, char **argv)
 				fclose(io_fd);
 				fclose(map_fd);
 				delete[] buffer;
-				++ it->my_level;
 				#endif
+				#ifdef PM_MODE
+				#ifdef DEBUG
+				cout << "\n";
+				#endif
+				#endif
+				++ it->my_level;
 			}
 			else //1为IO线程
 			{
+				#ifdef PM_MODE
+				rmptm = wtime();
+				it->read_map();
+				rmptm = wtime() - rmptm;
+				#endif
 				while(it->is_bsp_done == false)
 				{
 					it->load_key(level);
 					//it->load_key_iolist(level);
 				}
+				#ifdef PM_MODE
+				it->io_close();
+				#endif
 			}
 finish_point:	
 			comm[tid] = front_count;
@@ -470,6 +516,10 @@ finish_point:
 				front_count += comm[i];
 
 			ltm = wtime() - ltm;
+			#ifdef PM_MODE
+			ltm -= rmptm;
+			comp_tm_end -= rmptm;
+			#endif
 			if(!tid) tm += ltm;
 
 #pragma omp barrier
@@ -489,12 +539,12 @@ finish_point:
 
 			if(!tid){
 				std::cout<<"@level-"<<(int)level
-				<<"-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: "
+				<<"-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize-rpmtm: "
 				<<front_count<<" "<<ltm<<" "<<convert_tm<<" "<<it->io_time
 				<<"("<<it->cd->io_submit_time<<","<<it->cd->io_poll_time<<") "
 				<<" "<<it->wait_io_time<<" "<<it->wait_comp_time<<" "
 				<<total_sz<<" "<<comp_tm_end<<" "<<it->cd->io_submit__time<<" "
-				<<it->cd->io_submit_num<<" "<<it->cd->io_getevents_time<<" "<<useful_sz<<"\n";
+				<<it->cd->io_submit_num<<" "<<it->cd->io_getevents_time<<" "<<useful_sz<<" "<<rmptm<<"\n";
 
 				comp_total_tm += comp_tm_end;
 				io_total_tm += (it->cd->io_submit_time + it->cd->io_poll_time);
