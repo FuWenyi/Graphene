@@ -16,18 +16,20 @@ IO_smart_iterator::IO_smart_iterator(
 		const char *csr_dir,
 		const char *beg_header,
 		const char *csr_header,
+		const char *v2p_header,
 		const index_t num_chunks,
 		const size_t chunk_sz,
 		sa_t * &sa,sa_t* &sa_prev,
-		index_t* &beg_pos, 
+		index_t* &beg_pos,
+		index_t* &v2p_pos, 
 		index_t num_buffs,
 		index_t ring_vert_count,
 		index_t MAX_USELESS,
 		const index_t io_limit,
 		cb_func p_func):
 	IO_smart_iterator(comp_tid, comm, num_rows, num_cols, beg_dir, csr_dir,
-			beg_header, csr_header, num_chunks, chunk_sz, sa, sa_prev, 
-			beg_pos, MAX_USELESS, io_limit, p_func)
+			beg_header, csr_header, v2p_header, num_chunks, chunk_sz, sa, sa_prev, 
+			beg_pos, v2p_pos, MAX_USELESS, io_limit, p_func)
 {
 	//reqt_list
 	reqt_list = (index_t *)mmap(NULL, sizeof(index_t) * total_blks * 10,
@@ -48,28 +50,6 @@ IO_smart_iterator::IO_smart_iterator(
 	
 	is_bsp_done = false;
 	is_io_done = false;
-
-//	circ_free_buff = new circle(num_buffs);
-//	circ_load_buff = new circle(num_buffs);
-//	circ_free_buff -> reset_circle();
-//	circ_load_buff -> reset_circle();
-//	for(int i = 0; i < num_buffs; i ++)
-//	{
-//		buff_src_vert[i] = (vertex_t *)mmap(NULL, 
-//				ring_vert_count*sizeof(vertex_t),
-//				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-//				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-//		buff_dest[i] = (vertex_t *)mmap(NULL, 
-//				ring_vert_count*sizeof(vertex_t),
-//				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-//				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-//		if(buff_src_vert[i]==MAP_FAILED ||
-//				buff_dest[i] == MAP_FAILED)
-//			perror("buff_source buff_dest mmap");
-//		
-//		buff_edge_count[i] = 0;
-//		circ_free_buff->en_circle(i);
-//	}
 	
 	front_count = front_count_ptr;
 	front_queue = front_queue_ptr;
@@ -108,22 +88,24 @@ IO_smart_iterator::IO_smart_iterator(
 		const char *csr_dir,
 		const char *beg_header,
 		const char *csr_header,
+		const char *v2p_header,
 		const index_t num_chunks,
 		const size_t chunk_sz,
 		sa_t * &sa,sa_t* &sa_prev,
-		index_t* &beg_pos, 
+		index_t* &beg_pos,
+		index_t* &v2p_pos, 
 		index_t num_buffs,
 		index_t ring_vert_count,
 		index_t MAX_USELESS,
 		const index_t io_limit,
 		cb_func p_func):
 	IO_smart_iterator(comp_tid, comm, num_rows, num_cols, beg_dir, csr_dir,
-			beg_header, csr_header, num_chunks, chunk_sz, sa, sa_prev, 
-			beg_pos, MAX_USELESS, io_limit, p_func)
+			beg_header, csr_header, v2p_header,num_chunks, chunk_sz, sa, sa_prev, 
+			beg_pos, v2p_pos, MAX_USELESS, io_limit, p_func)
 {
-	//reqt_list
+	// reqt_list
 	reqt_list = (index_t *)mmap(NULL, sizeof(index_t) * total_blks * 4,
-	//reqt_list = (index_t *)mmap(NULL, sizeof(index_t) * 33554432,//FOR FRIENDSTER/TWITTER
+	// reqt_list = (index_t *)mmap(NULL, sizeof(index_t) * 33554432,//FOR FRIENDSTER/TWITTER
 			PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
 			| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);	
 
@@ -136,29 +118,6 @@ IO_smart_iterator::IO_smart_iterator(
 	buff_edge_count = new index_t[num_buffs];
 	is_bsp_done = false;
 	is_io_done = false;
-	
-//	circ_free_buff = new circle(num_buffs);
-//	circ_load_buff = new circle(num_buffs);
-//	circ_free_buff -> reset_circle();
-//	circ_load_buff -> reset_circle();
-//	for(int i = 0; i < num_buffs; i ++)
-//	{
-//		buff_source[i] = (sa_t *)mmap(NULL, 
-//				ring_vert_count*sizeof(sa_t),
-//				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-//				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-//		buff_dest[i] = (vertex_t *)mmap(NULL, 
-//				ring_vert_count*sizeof(vertex_t),
-//				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-//				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-//
-//		if(buff_source[i]==MAP_FAILED ||
-//				buff_dest[i] == MAP_FAILED)
-//			perror("buff_source buff_dest mmap");
-//		
-//		buff_edge_count[i] = 0;
-//		circ_free_buff->en_circle(i);
-//	}
 	
 	front_count = front_count_ptr;
 	front_queue = front_queue_ptr;
@@ -195,10 +154,12 @@ IO_smart_iterator::IO_smart_iterator(
 		const char *csr_dir,
 		const char *beg_header,
 		const char *csr_header,
+		const char *v2p_header,
 		const index_t num_chunks,
 		const size_t chunk_sz,
 		sa_t * &sa,sa_t* &sa_prev,
-		index_t* &beg_pos, 
+		index_t* &beg_pos,
+		index_t* &v2p_pos, 
 		index_t MAX_USELESS,
 		const index_t io_limit,
 		cb_func p_func):
@@ -219,71 +180,130 @@ IO_smart_iterator::IO_smart_iterator(
 	wait_io_time = 0;
 	wait_comp_time = 0;
 
-	VERT_PER_BLK=BLK_SZ/sizeof(vertex_t);
+	VERT_PER_BLK= BLK_SZ/sizeof(vertex_t);
+	PAGE_SIZE_BYTE = 0x400;
+	PAGE_PER_BLK = BLK_SZ / PAGE_SIZE_BYTE;
 	is_active=p_func;
 	my_row = comp_tid/num_cols;
 	my_col = comp_tid%num_cols;
 
-	char beg_filename[256];
-	char csr_filename[256];
-	sprintf(beg_filename, "%s/row_%d_col_%d/%s.%d_%d_of_%dx%d.bin", 
-					beg_dir, my_row, my_col, beg_header, 
-					my_row, my_col, num_rows, num_cols);
-		
-	int fd_beg = open(beg_filename, O_RDONLY | O_NOATIME | O_DIRECT);
-	if(fd_beg==-1)
+	char beg_filename[256];		// out degree file
+	char csr_filename[256];		// grep csr file 
+	char v2p_filename[256];		// vertex to page file
+
+	// read out-degree array
 	{
-		perror("open");
-		fprintf(stdout,"Wrong open %s\n",beg_filename);
-		exit(-1);
+		sprintf(beg_filename, "%s/row_%d_col_%d/%s.%d_%d_of_%dx%d.bin", 
+						beg_dir, my_row, my_col, beg_header, 
+						my_row, my_col, num_rows, num_cols);
+			
+		int fd_beg = open(beg_filename, O_RDONLY | O_NOATIME | O_DIRECT);
+		if(fd_beg==-1)
+		{
+			perror("open");
+			fprintf(stdout,"Wrong open %s\n",beg_filename);
+			exit(-1);
+		}
+
+		off_t sz_beg = fsize(beg_filename);
+		
+		if(sz_beg & (BLK_SZ-1)) sz_beg += BLK_SZ - (sz_beg&(BLK_SZ -1));
+
+		beg_pos=(index_t *)mmap(NULL,sz_beg,
+				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
+				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
+		if(beg_pos == MAP_FAILED)
+		{
+			printf("%ld\n",sz_beg);
+			perror("beg_pos alloc mmap");
+			exit(-1);
+		}
+
+		//O_DIRECT requires:
+		//- starting offset is aligned
+		//- total read size is aligned
+		//- like bricks
+		index_t ptr=0;
+		index_t ret=0;
+		//- cannot handle huge graph, e.g., sz_beg is too big
+		index_t read_sz = (sz_beg > READ_BLK ? READ_BLK:sz_beg);
+		while(true)
+		{
+			//pread cannot do too big read, split them into small pieces
+			ret=pread(fd_beg, beg_pos+ptr/sizeof(index_t), read_sz, ptr);
+			if(ret<=0)
+				perror("pread");
+			
+			if(ret!=read_sz) break;
+			ptr+= read_sz;
+		}
+
+		close(fd_beg);
 	}
 
-	off_t sz_beg = fsize(beg_filename);
+	// read v2p array
+	{
+		sprintf(v2p_filename, "%s/row_%d_col_%d/%s.%d_%d_of_%dx%d.bin", 
+						beg_dir, my_row, my_col, v2p_header, 
+						my_row, my_col, num_rows, num_cols);
+			
+		int fd_v2p = open(v2p_filename, O_RDONLY | O_NOATIME | O_DIRECT);
+		if(fd_v2p==-1)
+		{
+			perror("open");
+			fprintf(stdout,"Wrong open %s\n", v2p_filename);
+			exit(-1);
+		}
+
+		off_t sz_v2p = fsize(v2p_filename);
+		
+		if(sz_v2p & (BLK_SZ-1)) sz_v2p += BLK_SZ - (sz_v2p&(BLK_SZ -1));
+
+		v2p_pos=(index_t *)mmap(NULL,sz_v2p,
+				PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
+				| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
+		if(v2p_pos == MAP_FAILED)
+		{
+			printf("%ld\n",sz_v2p);
+			perror("v2p_pos alloc mmap");
+			exit(-1);
+		}
+
+		//O_DIRECT requires:
+		//- starting offset is aligned
+		//- total read size is aligned
+		//- like bricks
+		index_t ptr=0;
+		index_t ret=0;
+		//- cannot handle huge graph, e.g., sz_beg is too big
+		index_t read_sz = (sz_v2p > READ_BLK ? READ_BLK:sz_v2p);
+		while(true)
+		{
+			//pread cannot do too big read, split them into small pieces
+			ret=pread(fd_v2p, v2p_pos+ptr/sizeof(index_t), read_sz, ptr);
+			if(ret<=0)
+				perror("pread");
+			
+			if(ret!=read_sz) break;
+			ptr+= read_sz;
+		}
+
+		close(fd_v2p);
+	}
+
 	row_ranger_beg = 0;
 	for(int i=0;i<my_row;i++)
 		row_ranger_beg += comm[i * num_cols + my_col];
 	row_ranger_end = row_ranger_beg + comm[comp_tid];
-	
-	if(sz_beg & (BLK_SZ-1)) sz_beg += BLK_SZ - (sz_beg&(BLK_SZ -1));
-	
-	beg_pos=(index_t *)mmap(NULL,sz_beg,
-			PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
-			| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
-	if(beg_pos == MAP_FAILED)
-	{
-		printf("%ld\n",sz_beg);
-		perror("beg_pos alloc mmap");
-		exit(-1);
-	}
 
-	//O_DIRECT requires:
-	//- starting offset is aligned
-	//- total read size is aligned
-	//- like bricks
-	index_t ptr=0;
-	index_t ret=0;
-	//- cannot handle huge graph, e.g., sz_beg is too big
-	index_t read_sz = (sz_beg > READ_BLK ? READ_BLK:sz_beg);
-	while(true)
-	{
-		//pread cannot do too big read, split them into small pieces
-		ret=pread(fd_beg, beg_pos+ptr/sizeof(index_t), read_sz, ptr);
-		if(ret<=0)
-			perror("pread");
-		
-		if(ret!=read_sz) break;
-		ptr+= read_sz;
-	}
-
-	close(fd_beg);
-	
+	// open grep_csr fd
 	sprintf(csr_filename, "%s/row_%d_col_%d/%s.%d_%d_of_%dx%d.bin", 
 					csr_dir, my_row, my_col, csr_header, 
 					my_row, my_col, num_rows, num_cols);
 	
 	off_t sz_csr = fsize(csr_filename);
-	assert(sz_csr == (beg_pos[row_ranger_end-row_ranger_beg]) 
-				* sizeof(vertex_t));
+	page_num = v2p_pos[row_ranger_end-row_ranger_beg] + 1;
+	assert(sz_csr == (page_num * PAGE_SIZE_BYTE));
 
 	//Attention: We are not using o_direct because of ramdisk.
 	fd_csr = open(csr_filename, O_RDONLY | O_DIRECT| O_NOATIME);
@@ -299,10 +319,7 @@ IO_smart_iterator::IO_smart_iterator(
 	io_conserve = false;
 	beg_pos_ptr = beg_pos;
 	reqt_blk_count = 0;
-	total_blks = beg_pos_ptr[row_ranger_end-row_ranger_beg]/VERT_PER_BLK;
-	//这里total_blks+1的条件似乎有问题
-	//if(total_blks & (VERT_PER_BLK-1)) ++total_blks;
-	if(beg_pos_ptr[row_ranger_end-row_ranger_beg] & (VERT_PER_BLK-1)) ++total_blks;
+	total_blks = (page_num + PAGE_PER_BLK - 1) & ~(PAGE_PER_BLK - 1);
 
 	//add 64 more bits, in order for quick bitmap scan.
 	reqt_blk_bitmap=(bit_t *)mmap(NULL,((total_blks>>3)+8) * sizeof(bit_t),

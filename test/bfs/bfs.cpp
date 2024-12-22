@@ -36,10 +36,10 @@ int main(int argc, char **argv)
 	std::cout<<"Format: /path/to/exe " 
 		<<"#row_partitions #col_partitions thread_count "
 		<<"/path/to/beg_pos_dir /path/to/csr_dir "
-		<<"beg_header csr_header num_chunks "
+		<<"deg_header csr_header num_chunks "
 		<<"chunk_sz (#bytes) concurr_IO_ctx "
 		<<"max_continuous_useless_blk ring_vert_count num_buffs source "
-		<<"cache_sz(#bytes)\n";//指定存放csr的cache的大小(单位B)
+		<<"cache_sz(#bytes) v2p_header\n";//指定存放csr的cache的大小(单位B)
 
 	if(argc != 15)
 	{
@@ -66,19 +66,24 @@ int main(int argc, char **argv)
 	const index_t ring_vert_count = atoi(argv[12]);
 	const index_t num_buffs = atoi(argv[13]);
 	vertex_t root = (vertex_t) atol(argv[14]);
+	const char *v2p_header=argv[15];
+	const char *deg_header=argv[17];
 	//size_t csrshm_sz = atoi(argv[15]);
 
 	//vertex_t **csr = new vertex_t*[num_rows*num_cols];
 
 	assert(NUM_THDS==(row_par*col_par*2));
 	sa_t *sa = NULL;
-	index_t *comm = new index_t[NUM_THDS];
+	index_t *comm = new index_t[NUM_THDS];				// 用于存每个线程处理的点数
 	vertex_t **front_queue_ptr;
 	index_t *front_count_ptr;
 	vertex_t *col_ranger_ptr;
 	
+	// get total vert count
 	const index_t vert_count=get_vert_count
-		(comm, beg_dir,beg_header,row_par,col_par);
+		(comm, beg_dir, deg_header,row_par,col_par);
+	std::cout << "Total vert cnt: " << vert_count << "\n";
+	// get partition
 	get_col_ranger(col_ranger_ptr, front_queue_ptr,
 			front_count_ptr, beg_dir, beg_header,
 			row_par, col_par);
@@ -150,7 +155,8 @@ int main(int argc, char **argv)
 		int tid = omp_get_thread_num();
 		int comp_tid = tid >> 1;
 		comp_t *neighbors;
-		index_t *beg_pos;
+		index_t *beg_pos;			// out-degree array
+		index_t *v2p_pos;			// v2p array
 		//if(tid < 16) 
 		//	pin_thread_socket(socket_one, 12);
 		//else
@@ -171,10 +177,12 @@ int main(int argc, char **argv)
 						comp_tid,comm,
 						row_par,col_par,	
 						beg_dir,csr_dir, 
-						beg_header,csr_header,
+						deg_header,csr_header,
+						v2p_header,
 						num_chunks,
 						chunk_sz,
-						sa,sa_dummy,beg_pos,
+						sa,sa_dummy,
+						beg_pos,v2p_pos, 
 						num_buffs,
 						ring_vert_count,
 						MAX_USELESS,
@@ -238,9 +246,10 @@ int main(int argc, char **argv)
 			{
 				it->is_bsp_done = false;
 				if((prev_front_count * 100.0)/ vert_count > 2.0) 
+					// many active vertice, use active vertice value array
 					it->req_translator(level);
-				else
-				{
+				else {
+					// some active vertice, use active vertice queue
 					it->req_translator_queue();
 				}
 			}
@@ -330,75 +339,6 @@ int main(int argc, char **argv)
 					assert(it->cd->circ_free_chunk->en_circle(chunk_id)!= -1);
 				}
 
-				//work-steal
-			//	for(int ii = tid - (col_par * 2); ii <= tid + (col_par * 2) ; ii += (col_par *4))
-			//	{
-			//		if(ii < 0 || ii >= NUM_THDS) continue;
-			//		IO_smart_iterator* it_work_steal = it_comm[ii];			
-			//		while(true)
-			//		{	
-			//			int chunk_id = -1;
-			//			double blk_tm = wtime();
-			//			while((chunk_id = it_work_steal->cd->circ_load_chunk->de_circle())
-			//					== -1)
-			//			{
-			//				if(it_work_steal->is_bsp_done)
-			//				{
-			//					chunk_id = it_work_steal->cd->circ_load_chunk->de_circle();
-			//					break;
-			//				}
-			//			}
-			//			it_work_steal->wait_io_time += (wtime() - blk_tm);
-
-			//			if(chunk_id == -1) break;
-			//			
-			//			//printf("%dhelps%d-for%d\n", tid, ii, chunk_id);
-			//			struct chunk *pinst = it_work_steal->cd->cache[chunk_id];	
-			//			index_t blk_beg_off = pinst->blk_beg_off;
-			//			index_t num_verts = pinst->load_sz;
-			//			vertex_t vert_id = pinst->beg_vert;
-
-			//			//process one chunk
-			//			while(true)
-			//			{
-			//				if(sa[vert_id] == level)
-			//				{
-			//					index_t beg = it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg] 
-			//						- blk_beg_off;
-			//					index_t end = beg + it_work_steal->beg_pos_ptr[vert_id + 1 - 
-			//						it_work_steal->row_ranger_beg]- 
-			//						it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg];
-
-			//					//possibly vert_id starts from preceding data block.
-			//					//there by beg<0 is possible
-			//					if(beg<0) beg = 0;
-
-			//					if(end>num_verts) end = num_verts;
-			//					for( ;beg<end; ++beg)
-			//					{
-			//						vertex_t nebr = pinst->buff[beg];
-			//						if(sa[nebr] == INFTY)
-			//						{
-			//							sa[nebr]=level+1;
-			//							if(front_count <= it->col_ranger_end - it->col_ranger_beg)
-			//								it->front_queue[comp_tid][front_count] = nebr;
-			//							front_count++;
-			//						}
-			//					}
-			//				}
-			//				++vert_id;
-
-			//				if(vert_id >= it_work_steal->row_ranger_end) break;
-			//				if(it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg]
-			//						- blk_beg_off > num_verts) 
-			//					break;
-			//			}
-
-			//			pinst->status = EVICTED;
-			//			assert(it_work_steal->cd->circ_free_chunk->en_circle(chunk_id)!= -1);
-			//		}
-			//	}
-
 				it->front_count[comp_tid] = front_count;
 
 				//记录本level的计算时间
@@ -408,27 +348,6 @@ int main(int argc, char **argv)
 			{
 				while(it->is_bsp_done == false)
 				{
-					//if(it->circ_free_buff->get_sz() == 0)
-					//{
-					//	printf("worked\n");
-					//	int curr_buff = it->next(-1);
-					//	assert(curr_buff != -1);
-					//	neighbors = it -> buff_dest[curr_buff];
-					//	index_t buff_edge_count = it -> buff_edge_count[curr_buff];
-					//	//nebr_chk += buff_edge_count;
-					//	for(long i = 0;i < buff_edge_count; i++)
-					//	{
-					//		vertex_t nebr = neighbors[i];
-					//		if(sa[nebr]==INFTY)
-					//		{
-					//			//printf("new-front: %u\n", nebr);
-					//			sa[nebr]=level+1;
-					//			front_count++;
-					//		}
-					//	}
-					//	it->circ_free_buff->en_circle(curr_buff);
-					//}
-
 					it->load_key(level);
 					//it->load_key_iolist(level);
 				}

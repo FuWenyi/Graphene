@@ -11,7 +11,7 @@ class IO_smart_iterator
 {
 	public:
 		cache_driver *cd;
-		int fd_csr;
+		int fd_csr;								// grep_csr fd
 
 		#ifdef TIMING
 		std::stringstream loadss,issuess,compss,sortss;
@@ -47,12 +47,15 @@ class IO_smart_iterator
 		int sort_req;
 
 		//for IO loading
-		index_t total_blks;
+		index_t total_blks;				// 4KB IO degree
+		index_t page_num;			
 		bit_t *reqt_blk_bitmap;
 		vertex_t *blk_beg_vert;
 		index_t vert_per_chunk;
-		index_t reqt_blk_count; // number of request to be issued
+		index_t reqt_blk_count; 		// number of request to be issued
 		index_t VERT_PER_BLK;
+		index_t PAGE_SIZE_BYTE;
+		index_t PAGE_PER_BLK;
 		index_t *reqt_list;
 		double io_time;
 		double wait_io_time;
@@ -95,10 +98,12 @@ class IO_smart_iterator
 				const char *csr_dir,
 				const char *beg_header,
 				const char *csr_header,
+				const char *v2p_header,
 				const index_t num_chunks,
 				const size_t chunk_sz,
 				sa_t * &sa,sa_t* &sa_prev,
-				index_t* &beg_pos, 
+				index_t* &beg_pos,
+				index_t* &v2p_pos, 
 				index_t num_buffs,
 				index_t ring_vert_count,
 				index_t MAX_USELESS,
@@ -117,10 +122,12 @@ class IO_smart_iterator
 				const char *csr_dir,
 				const char *beg_header,
 				const char *csr_header,
+				const char *v2p_header,
 				const index_t num_chunks,
 				const size_t chunk_sz,
 				sa_t * &sa,sa_t* &sa_prev,
-				index_t* &beg_pos, 
+				index_t* &beg_pos,
+				index_t* &v2p_pos, 
 				index_t num_buffs,
 				index_t ring_vert_count,
 				index_t MAX_USELESS,
@@ -136,10 +143,12 @@ class IO_smart_iterator
 				const char *csr_dir,
 				const char *beg_header,
 				const char *csr_header,
+				const char *v2p_header,
 				const index_t num_chunks,
 				const size_t chunk_sz,
 				sa_t * &sa,sa_t* &sa_prev,
-				index_t* &beg_pos, 
+				index_t* &beg_pos,
+				index_t* &v2p_pos, 
 				index_t MAX_USELESS,
 				const index_t io_limit,
 				cb_func p_func);

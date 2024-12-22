@@ -1,7 +1,7 @@
 #ifndef __UTIL_H__
 #define __UTIL_H__
 
-typedef long index_t;
+typedef unsigned int index_t;
 typedef unsigned int vertex_t;
 typedef unsigned int sa_t;
 typedef unsigned char bit_t;
