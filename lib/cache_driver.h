@@ -116,7 +116,8 @@ class cache_driver
 
 		// PM
 		#ifdef PM_MODE
-		void read_map(int level, int my_row, int my_col, int beg_dir);
+		void read_map(int level, int my_row, int my_col, const char* beg_dir);
+		void io_close();
 		#endif
 };
 

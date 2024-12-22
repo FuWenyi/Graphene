@@ -125,7 +125,11 @@ cache_driver::~cache_driver()
 		delete io_list[i]->io_cbp;
 		delete io_list[i];
 	}
+	
+	#ifndef PM_MODE
 	close(fd_csr);
+	#endif
+
 	delete[] piocb;
 
 	delete[] io_list;
@@ -150,14 +154,16 @@ void cache_driver::submit_io_req(index_t io_id)
 		piocb[i]=&(io_list[io_id]->io_cbp[i]);
 		index_t chunk_id = io_list[io_id]->chunk_id[i];
 		
+		#ifdef PM_MODE
+		struct LongPair ele = myfileMap[cache[chunk_id]->blk_beg_off]; 
+		#endif
 		double before = wtime();
 		#ifdef PM_MODE
-		auto ele = myfileMap[cache[chunk_id]->blk_beg_off]; 
 		io_prep_pread(&(io_list[io_id]->io_cbp[i]), 
 				io_fd,
 				cache[chunk_id]->buff, 
-				ele.size*sizeof(vertex_t),
-				ele.beg_blk*sizeof(vertex_t));			
+				ele.size,
+				ele.beg_blk);			
 		#else
 		io_prep_pread(&(io_list[io_id]->io_cbp[i]), 
 				fd_csr,
@@ -176,7 +182,11 @@ void cache_driver::submit_io_req(index_t io_id)
 		//	exit(-1);
 		//}
 		
+		#ifdef PM_MODE
+		fetch_sz += ele.size;
+		#else
 		fetch_sz += cache[chunk_id]->load_sz * sizeof(vertex_t);
+		#endif
 	}
 
 //	if(omp_get_thread_num() == 1)
@@ -195,8 +205,13 @@ void cache_driver::submit_io_req(index_t io_id)
 		for(index_t i=0;i<io_list[io_id]->num_ios;i++)
 		{
 			index_t chunk_id = io_list[io_id]->chunk_id[i];
+			#ifdef PM_MODE
+			struct LongPair ele = myfileMap[cache[chunk_id]->blk_beg_off]; 
+			std::cout<<"size-beg: "<<ele.size<<" "<<ele.beg_blk<<"\n";	
+			#else
 			std::cout<<"size-beg: "<<cache[chunk_id]->load_sz<<" "
 				<<cache[chunk_id]->blk_beg_off<<"\n";
+			#endif
 		}
 		exit(-1);
 	}
@@ -303,7 +318,7 @@ void cache_driver::load_chunk()
 			//clean this bit
 			--(*reqt_blk_count);
 			reqt_blk_bitmap[load_blk_off>>3] &= (~(1<<(load_blk_off&7)));
-			//每次request至少包含1个blk
+			// 每次request至少包含1个blk
 			// ++req_blk_num ;
 			// submitted_req_count++;
 
@@ -722,9 +737,6 @@ circle *cache_driver::get_chunk()
 	
 	io_poll_time += (wtime() - this_time);
 	//fclose(fp);
-	#ifdef PM_MODE
-	close(io_fd);
-	#endif
 	return circ_load_chunk;
 }
 
@@ -743,10 +755,12 @@ void cache_driver::clean_caches()
 }
 
 #ifdef PM_MODE
-void cache_driver::read_map(int level, int my_row, int my_col, int beg_dir) {
+void cache_driver::read_map(int level, int my_row, int my_col, const char* beg_dir) {
 	char useio_filename[256];
 	char map_filename[256];
+	#ifdef DEBUG
 	cout << "level: " << level << " row: " << my_row << " col:" << my_col << " dir: " << beg_dir << "\n";
+	#endif
 	sprintf(useio_filename, "%s/pm/io_level%d_row%d_col%d.bin", beg_dir, level, my_row, my_col);
 	sprintf(map_filename, "%s/pm/map_level%d_row%d_col%d.bin", beg_dir, level, my_row, my_col);
 	io_fd = open(useio_filename, O_RDONLY | O_DIRECT| O_NOATIME);
@@ -767,6 +781,10 @@ void cache_driver::read_map(int level, int my_row, int my_col, int beg_dir) {
 	myfileMap.clear();
     while (fread(data_to_read, sizeof(index_t), 3, map_fd) == 3) {
         //printf("Read data: %d, %d, %d\n", data_to_read[0], data_to_read[1], data_to_read[2]);
+		#ifdef DEBUG
+		if (myfileMap.size() == 0)
+			cout << "myfileMap[0]: " << data_to_read[0] << " " << data_to_read[1] << " " << data_to_read[2] << "\n";
+		#endif
 		if (myfileMap.count(data_to_read[0])) {
 			assert(0);
 			std::cout << "wrong\n";
@@ -774,12 +792,18 @@ void cache_driver::read_map(int level, int my_row, int my_col, int beg_dir) {
 			myfileMap[data_to_read[0]] = {data_to_read[1], data_to_read[2]};
 		}
     }
-
+	#ifdef DEBUG
+	cout << "myfileMap size: " << myfileMap.size() << "\n";
+	#endif
     if (!feof(map_fd)) {
         perror("Error reading from map file");
         fclose(map_fd);
         assert(0);
     }
 	fclose(map_fd);
+}
+
+void cache_driver::io_close() {
+	close(io_fd);
 }
 #endif

@@ -242,6 +242,7 @@ IO_smart_iterator::IO_smart_iterator(
 				* sizeof(vertex_t));
 
 	//Attention: We are not using o_direct because of ramdisk.
+	#ifndef PM_MODE
 	fd_csr = open(csr_filename, O_RDONLY | O_DIRECT| O_NOATIME);
 	//int fd_csr = open(csr_filename, O_RDONLY);
 	if(fd_csr == -1)
@@ -250,6 +251,7 @@ IO_smart_iterator::IO_smart_iterator(
 		perror("open");
 		exit(-1);
 	}
+	#endif
 	
 	my_level = 0;
 	io_conserve = false;
@@ -639,27 +641,12 @@ int IO_smart_iterator::next(int used_buff)
 //Pointer chasing based load key
 void IO_smart_iterator::load_key(sa_t criterion)
 {
-//	double io_this_tm;
-//	int buff_ptr_io = -1;
-//	while((buff_ptr_io = circ_free_buff->de_circle())
-//			== -1)
-//	{
-//		//printf("I%d\n", omp_get_thread_num());
-//		cd->get_chunk();
-//		cd->load_chunk();
-//	}
-//	
-//	io_this_tm = wtime();
-//	vertex_t *io_buff = buff_dest[buff_ptr_io];
 	double blk_tm = wtime();
 	//std::cout << "[IO] wait comp start:" << blk_tm - this->start_time;
 	while(cd->circ_free_chunk->is_empty()){}
 	this->wait_comp_time += (wtime() - blk_tm);
 	//std::cout << " end:" << wtime() - this->start_time << "\n";
 
-#ifdef PM_MODE
-	cd->read_map(my_level, my_row, my_col, beg_dir_);
-#endif
 	cd->load_chunk();
 	cd->get_chunk();
 
@@ -671,85 +658,18 @@ void IO_smart_iterator::load_key(sa_t criterion)
 		//std::cout<<omp_get_thread_num()<<"-done\n";
 		is_bsp_done = true;
 	}
-
-	
-	
-	//	//Once entering here. 
-//	//-dump out at least half submissions
-//	//-if at half, still NULL, dump all
-//	index_t num_elements = 0;
-//	while(true)
-//	{
-//		circle *loadc=cd->get_chunk();
-//		index_t processed_chunk = 0;
-//		//a new loaded circle is empty
-//		//we are good to go.
-//		if(loadc->is_empty()) break;
-//
-//		while(!loadc->is_empty())
-//		{
-//			index_t chunk_id = loadc->de_circle();
-//			struct chunk *pinst = cd->cache[chunk_id];	
-//			index_t blk_beg_off = pinst->blk_beg_off;
-//			index_t num_verts = pinst->load_sz;
-//			vertex_t vert_id = pinst->beg_vert;
-//
-//			//process one chunk
-//			while(true)
-//			{
-//				if((*is_active)(vert_id,criterion,sa_ptr, sa_prev))
-//				{
-//					index_t beg = beg_pos_ptr[vert_id-row_ranger_beg]-blk_beg_off;
-//					index_t end = beg + beg_pos_ptr[vert_id+1-row_ranger_beg]- 
-//						beg_pos_ptr[vert_id-row_ranger_beg];
-//
-//					//possibly vert_id starts from preceding data block.
-//					//there by beg<0 is possible
-//					if(beg<0) beg = 0;
-//
-//					if(end>num_verts) end = num_verts;
-//					for( ;beg<end; ++beg)
-//					{
-//						//assert(pinst->buff[beg]<1262485504);
-//						io_buff[num_elements++] = pinst->buff[beg];
-//					}
-//				}
-//				++vert_id;
-//
-//				if(vert_id >= this->row_ranger_end) break;
-//				if(beg_pos_ptr[vert_id-row_ranger_beg]-blk_beg_off > num_verts) 
-//					break;
-//			}
-//
-//			pinst->status = EVICTED;
-//			cd->circ_free_chunk->en_circle(chunk_id);
-//			++processed_chunk;
-//
-//			//issue 16 requests each time
-//			if(processed_chunk==((cd->io_limit)>>1))
-//			{
-//				cd->load_chunk();
-//				cd->get_chunk();
-//				processed_chunk=0;
-//			}
-//			if(num_elements > buff_max_vert - cd->vert_per_chunk)
-//				goto fullpoint;
-//		}
-//	}
-//
-//fullpoint:
-//	cd->load_chunk();
-//	cd->get_chunk();
-//
-//	buff_edge_count[buff_ptr_io] = num_elements;
-//	//if(circ_load_buff->get_sz() > 2) 
-//	//	qsort(io_buff, num_elements, sizeof(vertex_t), cmpfunc);
-//	circ_load_buff->en_circle(buff_ptr_io);
-//	is_bsp_done = (num_elements == 0);
-//	io_time += (wtime() - io_this_tm);
-//	//if(comp_tid == 0) std::cout<<"num_elements: "<<num_elements<<"\n";
 	return;
 }
+
+#ifdef PM_MODE
+void IO_smart_iterator::read_map() {
+	cd->read_map(my_level, my_row, my_col, beg_dir_);
+}
+
+void IO_smart_iterator::io_close() {
+	cd->io_close();
+}
+#endif
 
 //Pagerank based load key in full.
 void IO_smart_iterator::load_kv_vert_full(sa_t criterion)

@@ -184,6 +184,11 @@ class IO_smart_iterator
 
 		bool LOCK(int *val, int tmout);
 		void priority_queue (int *acq_seq, int *seq_flag);
+
+		#ifdef PM_MODE
+		void read_map();
+		void io_close();
+		#endif
 };
 
 #endif

@@ -274,7 +274,7 @@ int main(int argc, char **argv)
 				//not early terminate
 				it->is_bsp_done = false;
 				it->reqt_blk_count = 1;
-				*(it->cd->io_conserve) = true;
+				//*(it->cd->io_conserve) = true;
 			}
 			else if ((tid & 1) == 1)
 			{
@@ -287,7 +287,8 @@ int main(int argc, char **argv)
 			if((tid & 1) == 0)
 			{
 				comp_tm_beg =  wtime();
-				//*(it->cd->io_conserve) = true;
+				// Here: try it the bug
+				*(it->cd->io_conserve) = true;
 				while(true)
 				{	
 					int chunk_id = -1;

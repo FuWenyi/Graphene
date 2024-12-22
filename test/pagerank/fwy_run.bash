@@ -15,6 +15,6 @@ sudo ./aio_pagerank.bin 2 2 8 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-sp
 echo "mv iostat_pagerank.log iostat_pagerank_2x2.log"
 mv iostat_pagerank.log iostat_pagerank_2x2.log
 
-sudo ./aio_pagerank.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 20 > pagerank_output_2x3.txt
+sudo ./aio_pagerank.bin 2 3 12 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 2 > pagerank_output_2x3.txt
 echo "mv iostat_pagerank.log iostat_pagerank_2x3.log"
 mv iostat_pagerank.log iostat_pagerank_2x3.log
