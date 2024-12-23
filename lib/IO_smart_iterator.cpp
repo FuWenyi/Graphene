@@ -388,7 +388,7 @@ void IO_smart_iterator::req_translator(sa_t criterion)
 	//since all requests are satisfied.
 	reqt_blk_count = 0;
 	for(index_t i = row_ranger_beg; i < row_ranger_end; i++)
-//	for(index_t i = col_ranger_beg; i < col_ranger_end; i++)
+		// for each active vertex
 		if((*is_active)(i,criterion,sa_ptr, sa_prev))
 		{
 			index_t beg = beg_pos_ptr[i - row_ranger_beg];

@@ -52,7 +52,7 @@ class IO_smart_iterator
 		bit_t *reqt_blk_bitmap;
 		vertex_t *blk_beg_vert;
 		index_t vert_per_chunk;
-		index_t reqt_blk_count; 		// number of request to be issued
+		index_t reqt_blk_count; 		// number of request blks, together with reqt_blk_bitmap 
 		index_t VERT_PER_BLK;
 		index_t PAGE_SIZE_BYTE;
 		index_t PAGE_PER_BLK;
