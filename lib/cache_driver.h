@@ -37,6 +37,7 @@ class cache_driver
 		index_t VERT_PER_BLK;
 		index_t vert_per_chunk;
 		vertex_t *buff;
+		vertex_t *al_buff;		       // buffer for active vertex list
 		struct io_event *events;
 		struct iocb **piocb;
 	

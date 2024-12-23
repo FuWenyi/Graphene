@@ -70,17 +70,30 @@ cache_driver::cache_driver(
 		perror("buffer mmap");
 		exit(-1);
 	}
-	
+
+	//using a big buffer for active vertex list, to be modified later
+	al_buff=NULL; 
+	al_buff=(vertex_t *)mmap(NULL,chunk_sz*num_chunks,
+		PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
+		| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
+	if(al_buff==MAP_FAILED)
+	{
+		perror("active vertex buffer mmap");
+		exit(-1);
+	}
+
 	//alloc buff space
 	cache = new struct chunk*[num_chunks];
 	for(index_t i=0;i<num_chunks;i++)
 	{
 		cache[i] = new struct chunk;
 		cache[i]->load_sz = -1;
+		cache[i]->active_num = -1;
 		cache[i]->blk_beg_off = -1;
 		//try alignment of big array here
 		cache[i]->status = EVICTED;
 		cache[i]->buff = &(buff[i*vert_per_chunk]);
+		cache[i]->active_list = &(al_buff[i*vert_per_chunk]);
 	}
 	
 	//alloc io list

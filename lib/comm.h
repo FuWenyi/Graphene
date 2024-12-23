@@ -50,6 +50,8 @@ struct chunk
 												//- are stored in this chunk 
 	index_t blk_beg_off;//the begin pos of this block
 	vertex_t *buff;//buffer for loading data
+	vertex_t *active_list;	//buffer for active vertex list
+	index_t active_num;		//number of active vertex
 	index_t load_sz;//-#verts loaded in this chunk
 };
 
