@@ -2,6 +2,7 @@
 
 #64KB partition 1x1
 #sudo ./aio_bfs.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 1
+#                                                                                                                         chunk_num chunk_size
 #sudo ./aio_bfs.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd com-orkut.ungraph.txt-split_beg com-orkut.ungraph.txt-split_csr 16384 65536 32 16 2048 1 1
 #64KB partition 1x2
 #sudo ./aio_bfs.bin 1 2 4 /home/fuwenyi/ssd /home/fuwenyi/ssd twitter.txt-split_beg twitter.txt-split_csr 16384 65536 32 16 2048 1 1

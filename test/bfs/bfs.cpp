@@ -202,6 +202,7 @@ int main(int argc, char **argv)
 		index_t total_vertex = 0;
 
 		double convert_tm = 0;
+		
 		/*FILE* fp_nebr = fopen("level_nebr.txt", "a");
 		if(fp_nebr == NULL) {
 			printf("文件读取无效.\n");
@@ -237,10 +238,13 @@ int main(int argc, char **argv)
 			if((tid & 1) == 0)
 			{
 				it->is_bsp_done = false;
-				if((prev_front_count * 100.0)/ vert_count > 2.0) 
+				if((prev_front_count * 100.0)/ vert_count > 2.0) {
+					std::cout << "use active vertex value array\n";
 					it->req_translator(level);
+				}
 				else
 				{
+					std::cout << "use active queue\n";
 					it->req_translator_queue();
 				}
 			}
@@ -252,7 +256,7 @@ int main(int argc, char **argv)
 			if((tid & 1) == 0)//0为计算线程
 			{
 				//记录本level的计算时间
-				//fprintf(fp_nebr,"\n level = %d\n", level);
+				// fprintf(fp_nebr,"\n level = %d\n", level);
 				// total_useful_sz 代表实际真正用到的边 IO
 				comp_tm_beg =  wtime();
 				while(true)
@@ -299,6 +303,8 @@ int main(int argc, char **argv)
 
 							if(end>num_verts) end = num_verts;
 							useful_sz += (end - beg) * sizeof(vertex_t);
+							/*if ((int)level <= 3)
+								fprintf(fp_nebr,"%d:", vert_id);*/
 							for( ;beg<end; ++beg)
 							{
 								vertex_t nebr = pinst->buff[beg];
@@ -308,9 +314,12 @@ int main(int argc, char **argv)
 									if(front_count <= it->col_ranger_end - it->col_ranger_beg)
 										it->front_queue[comp_tid][front_count] = nebr;
 									front_count++;
-									//fprintf(fp_nebr,"%d\t%d\t%d\t%d\t%d\n", vert_id, sa[vert_id], nebr, sa[nebr],chunk_id);
+									/*if ((int)level <= 3)
+										fprintf(fp_nebr," %d", nebr);*/
 								}
 							}
+							/*if ((int)level <= 3)
+								fprintf(fp_nebr,"\n");*/
 						}
 						++vert_id;
 
@@ -329,76 +338,6 @@ int main(int argc, char **argv)
 					//fprintf(fp_nebr,"chunk status = %d\n", pinst->status);
 					assert(it->cd->circ_free_chunk->en_circle(chunk_id)!= -1);
 				}
-
-				//work-steal
-			//	for(int ii = tid - (col_par * 2); ii <= tid + (col_par * 2) ; ii += (col_par *4))
-			//	{
-			//		if(ii < 0 || ii >= NUM_THDS) continue;
-			//		IO_smart_iterator* it_work_steal = it_comm[ii];			
-			//		while(true)
-			//		{	
-			//			int chunk_id = -1;
-			//			double blk_tm = wtime();
-			//			while((chunk_id = it_work_steal->cd->circ_load_chunk->de_circle())
-			//					== -1)
-			//			{
-			//				if(it_work_steal->is_bsp_done)
-			//				{
-			//					chunk_id = it_work_steal->cd->circ_load_chunk->de_circle();
-			//					break;
-			//				}
-			//			}
-			//			it_work_steal->wait_io_time += (wtime() - blk_tm);
-
-			//			if(chunk_id == -1) break;
-			//			
-			//			//printf("%dhelps%d-for%d\n", tid, ii, chunk_id);
-			//			struct chunk *pinst = it_work_steal->cd->cache[chunk_id];	
-			//			index_t blk_beg_off = pinst->blk_beg_off;
-			//			index_t num_verts = pinst->load_sz;
-			//			vertex_t vert_id = pinst->beg_vert;
-
-			//			//process one chunk
-			//			while(true)
-			//			{
-			//				if(sa[vert_id] == level)
-			//				{
-			//					index_t beg = it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg] 
-			//						- blk_beg_off;
-			//					index_t end = beg + it_work_steal->beg_pos_ptr[vert_id + 1 - 
-			//						it_work_steal->row_ranger_beg]- 
-			//						it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg];
-
-			//					//possibly vert_id starts from preceding data block.
-			//					//there by beg<0 is possible
-			//					if(beg<0) beg = 0;
-
-			//					if(end>num_verts) end = num_verts;
-			//					for( ;beg<end; ++beg)
-			//					{
-			//						vertex_t nebr = pinst->buff[beg];
-			//						if(sa[nebr] == INFTY)
-			//						{
-			//							sa[nebr]=level+1;
-			//							if(front_count <= it->col_ranger_end - it->col_ranger_beg)
-			//								it->front_queue[comp_tid][front_count] = nebr;
-			//							front_count++;
-			//						}
-			//					}
-			//				}
-			//				++vert_id;
-
-			//				if(vert_id >= it_work_steal->row_ranger_end) break;
-			//				if(it_work_steal->beg_pos_ptr[vert_id - it_work_steal->row_ranger_beg]
-			//						- blk_beg_off > num_verts) 
-			//					break;
-			//			}
-
-			//			pinst->status = EVICTED;
-			//			assert(it_work_steal->cd->circ_free_chunk->en_circle(chunk_id)!= -1);
-			//		}
-			//	}
-
 				it->front_count[comp_tid] = front_count;
 
 				//记录本level的计算时间
@@ -408,29 +347,7 @@ int main(int argc, char **argv)
 			{
 				while(it->is_bsp_done == false)
 				{
-					//if(it->circ_free_buff->get_sz() == 0)
-					//{
-					//	printf("worked\n");
-					//	int curr_buff = it->next(-1);
-					//	assert(curr_buff != -1);
-					//	neighbors = it -> buff_dest[curr_buff];
-					//	index_t buff_edge_count = it -> buff_edge_count[curr_buff];
-					//	//nebr_chk += buff_edge_count;
-					//	for(long i = 0;i < buff_edge_count; i++)
-					//	{
-					//		vertex_t nebr = neighbors[i];
-					//		if(sa[nebr]==INFTY)
-					//		{
-					//			//printf("new-front: %u\n", nebr);
-					//			sa[nebr]=level+1;
-					//			front_count++;
-					//		}
-					//	}
-					//	it->circ_free_buff->en_circle(curr_buff);
-					//}
-
 					it->load_key(level);
-					//it->load_key_iolist(level);
 				}
 			}
 finish_point:	
@@ -474,6 +391,25 @@ finish_point:
 					total_io_submit_16_num[i] += it->cd->io_submit_16_num[i];
 				}*/
 				
+				std::cout << "Block's active vertice: total_blks: " << it->total_blks << "\n";
+				int cnt = 0;
+				for (int i = 0; i <= it->total_blks; ++i) {
+					if (it->reqt_blk_av_num[i] > 0) {
+						if ((int)level < 3)
+							std::cout << it->reqt_blk_av_num[i] << " ";
+						++ cnt;
+					}
+					it->reqt_blk_av_num[i] = 0;
+				}
+				std::cout << "\n" << "active block cnt: " << cnt << "\n"; 
+
+				if (front_count < 20) {
+					std::cout << "active list: ";
+					for (index_t m = 0; m < front_count; m ++) {
+						std::cout << it->front_queue[0][m] << " ";
+					}
+					std::cout << "\n";
+				}
 				//std::cout << "submit_io_req_time: " << it->cd->submit_io_req_time << "\n";
 				//std::cout << "prep_pread_time: " << it->cd->prep_pread_time << "\n";
 				//std::cout << "io_submit__time: " << it->cd->io_submit__time << "\n";
@@ -504,6 +440,7 @@ finish_point:
 					 <<"Total io(16-31): "<<total_io_submit_16_num[1]<<" "
 					 <<"Total io(32-47): "<<total_io_submit_16_num[2]<<" "
 					 <<"Total io(48-63): "<<total_io_submit_16_num[3]<<"\n";
+			//fclose(fp_nebr);
 		} 
 		
 		if((tid & 1) == 0) delete it;
