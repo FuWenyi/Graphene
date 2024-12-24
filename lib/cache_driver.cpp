@@ -224,30 +224,8 @@ void cache_driver::load_chunk()
 		//fprintf(fp, "reset load chunk, load_chunk_head = %d, free_chunk_head = %d\n", circ_load_chunk->head, circ_free_chunk->head);
 		for(int i = 0; i < num_chunks; i ++)
 		{
-			//index_t beg_blk_id=cache[i]->blk_beg_off/VERT_PER_BLK;
-			//index_t end_blk_id=beg_blk_id+cache[i]->load_sz/VERT_PER_BLK;
-			//bool is_reuse=false;
-			//while(beg_blk_id<end_blk_id)
-			//{
-			//	if(reqt_blk_bitmap[beg_blk_id>>3] & (1<<(beg_blk_id&7)))
-			//	{
-			//		if(!is_reuse) is_reuse = true;
-			//		--(*reqt_blk_count);
-			//		reqt_blk_bitmap[beg_blk_id>>3] &= (~(1<<(beg_blk_id&7)));	
-			//	}
-			//	beg_blk_id++;
-			//}
-
-			//if(is_reuse)
-			//{
-			//	cache[i]->status=LOADED;
-			//	circ_load_chunk->en_circle(i);
-			//}
-			//else
-			//{
 			cache[i]->status=EVICTED;
 			circ_free_chunk->en_circle(i);
-			//}
 		}
 	}
 	
@@ -419,30 +397,8 @@ void cache_driver::load_chunk_iolist()
 		circ_load_chunk->reset_circle();
 		for(int i = 0; i < num_chunks; i ++)
 		{
-			//index_t beg_blk_id=cache[i]->blk_beg_off/VERT_PER_BLK;
-			//index_t end_blk_id=beg_blk_id+cache[i]->load_sz/VERT_PER_BLK;
-			//bool is_reuse=false;
-			//while(beg_blk_id<end_blk_id)
-			//{
-			//	if(reqt_blk_bitmap[beg_blk_id>>3] & (1<<(beg_blk_id&7)))
-			//	{
-			//		if(!is_reuse) is_reuse = true;
-			//		--(*reqt_blk_count);
-			//		reqt_blk_bitmap[beg_blk_id>>3] &= (~(1<<(beg_blk_id&7)));	
-			//	}
-			//	beg_blk_id++;
-			//}
-
-			//if(is_reuse)
-			//{
-			//	cache[i]->status=LOADED;
-			//	circ_load_chunk->en_circle(i);
-			//}
-			//else
-			//{
 			cache[i]->status=EVICTED;
 			circ_free_chunk->en_circle(i);
-			//}
 		}
 	}
 	
@@ -545,30 +501,8 @@ void cache_driver::load_chunk_full()
 		circ_load_chunk->reset_circle();
 		for(int i = 0; i < num_chunks; i ++)
 		{
-			//index_t beg_blk_id=cache[i]->blk_beg_off/VERT_PER_BLK;
-			//index_t end_blk_id=beg_blk_id+cache[i]->load_sz/VERT_PER_BLK;
-			//bool is_reuse=false;
-			//while(beg_blk_id<end_blk_id)
-			//{
-			//	if(reqt_blk_bitmap[beg_blk_id>>3] & (1<<(beg_blk_id&7)))
-			//	{
-			//		if(!is_reuse) is_reuse = true;
-			//		--(*reqt_blk_count);
-			//		reqt_blk_bitmap[beg_blk_id>>3] &= (~(1<<(beg_blk_id&7)));	
-			//	}
-			//	beg_blk_id++;
-			//}
-
-			//if(is_reuse)
-			//{
-			//	cache[i]->status=LOADED;
-			//	circ_load_chunk->en_circle(i);
-			//}
-			//else
-			//{
 			cache[i]->status=EVICTED;
 			circ_free_chunk->en_circle(i);
-			//}
 		}
 	}
 	

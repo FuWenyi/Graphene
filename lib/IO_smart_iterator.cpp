@@ -314,6 +314,15 @@ IO_smart_iterator::IO_smart_iterator(
 		exit(-1);
 	}
 	
+	reqt_blk_av_num=(index_t *)mmap(NULL,(total_blks+1) * sizeof(index_t),
+			PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
+			| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
+	if(reqt_blk_av_num == MAP_FAILED)
+	{
+		perror("reqt_blk_bitmap mmap");
+		exit(-1);
+	}
+
 	blk_beg_vert=(vertex_t *)mmap(NULL,total_blks * sizeof(vertex_t),
 			PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
 			| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
@@ -324,6 +333,7 @@ IO_smart_iterator::IO_smart_iterator(
 		exit(-1);
 	}
 	memset(reqt_blk_bitmap, 0, ((total_blks>>3)+1) * sizeof(bit_t));
+	memset(reqt_blk_av_num, 0, (total_blks+1) * sizeof(index_t));
 	memset(blk_beg_vert, 0, total_blks * sizeof(vertex_t));
 
 
@@ -347,6 +357,7 @@ IO_smart_iterator::~IO_smart_iterator()
 	munmap(reqt_blk_bitmap, ((total_blks>>3)+1) * sizeof(bit_t));
 	munmap(blk_beg_vert, sizeof(vertex_t) * total_blks);
 	munmap(beg_pos_ptr, sizeof(index_t)*(row_ranger_end - row_ranger_beg + 1));
+	munmap(reqt_blk_av_num, (total_blks+1) * sizeof(index_t));
 }
 
 
@@ -371,7 +382,6 @@ void IO_smart_iterator::req_translator(sa_t criterion)
 	//since all requests are satisfied.
 	reqt_blk_count = 0;
 	for(index_t i = row_ranger_beg; i < row_ranger_end; i++)
-//	for(index_t i = col_ranger_beg; i < col_ranger_end; i++)
 		if((*is_active)(i,criterion,sa_ptr, sa_prev))
 		{
 			index_t beg = beg_pos_ptr[i - row_ranger_beg];
@@ -391,6 +401,7 @@ void IO_smart_iterator::req_translator(sa_t criterion)
 					++reqt_blk_count;
 					reqt_blk_bitmap[j>>3] |= (1<<(j&7));
 				}
+				reqt_blk_av_num[j] = reqt_blk_av_num[j] + 1;
 			}
 		}
 	
@@ -463,7 +474,6 @@ void IO_smart_iterator::req_translator_queue()
 				{
 					vertex_t i = front_queue[row_ptr * num_cols + col_ptr][m];
 					if(i < row_ranger_beg || i >= row_ranger_end) continue;
-
 					index_t beg = beg_pos_ptr[i - row_ranger_beg];
 					index_t end = beg_pos_ptr[i+1 - row_ranger_beg];
 
@@ -481,6 +491,7 @@ void IO_smart_iterator::req_translator_queue()
 							++reqt_blk_count;
 							reqt_blk_bitmap[j>>3] |= (1<<(j&7));
 						}
+						reqt_blk_av_num[j] = reqt_blk_av_num[j] + 1;
 					}
 				}
 			}
@@ -683,18 +694,6 @@ int IO_smart_iterator::next(int used_buff)
 //Pointer chasing based load key
 void IO_smart_iterator::load_key(sa_t criterion)
 {
-//	double io_this_tm;
-//	int buff_ptr_io = -1;
-//	while((buff_ptr_io = circ_free_buff->de_circle())
-//			== -1)
-//	{
-//		//printf("I%d\n", omp_get_thread_num());
-//		cd->get_chunk();
-//		cd->load_chunk();
-//	}
-//	
-//	io_this_tm = wtime();
-//	vertex_t *io_buff = buff_dest[buff_ptr_io];
 	double blk_tm = wtime();
 	//std::cout << "[IO] wait comp start:" << blk_tm - this->start_time;
 	while(cd->circ_free_chunk->is_empty()){}
