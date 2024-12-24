@@ -392,6 +392,7 @@ finish_point:
 				}*/
 				
 				std::cout << "Block's active vertice: total_blks: " << it->total_blks << "\n";
+				
 				int cnt = 0;
 				for (int i = 0; i <= it->total_blks; ++i) {
 					if (it->reqt_blk_av_num[i] > 0) {
@@ -399,9 +400,18 @@ finish_point:
 							std::cout << it->reqt_blk_av_num[i] << " ";
 						++ cnt;
 					}
+				}
+
+				int max_len = -1;
+				for (int i = 0; i <= it->total_blks; ++i) {
+					if (it->reqt_blk_av_num[i] > 0) {
+						if (it->reqt_blk_av_num[i] > max_len)
+							max_len = it->reqt_blk_av_num[i];
+					}
 					it->reqt_blk_av_num[i] = 0;
 				}
 				std::cout << "\n" << "active block cnt: " << cnt << "\n"; 
+				std::cout << "\n" << "max active list len: " << max_len << "\n"; 
 
 				if (front_count < 20) {
 					std::cout << "active list: ";
