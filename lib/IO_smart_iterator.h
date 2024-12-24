@@ -58,6 +58,7 @@ class IO_smart_iterator
 		index_t PAGE_PER_BLK;
 		index_t *reqt_list;
 		vertex_t *blk_al_buff;			// 存放每个 block active vertex list 的 buffer
+		struct blk **blk_al;
 		double io_time;
 		double wait_io_time;
 		double wait_comp_time;
@@ -68,6 +69,7 @@ class IO_smart_iterator
 		sa_t *sa_ptr;
 		sa_t *sa_prev;
 		index_t *beg_pos_ptr;
+		index_t *v2p_pos_ptr;
 		vertex_t **front_queue;
 		index_t *front_count;
 
@@ -191,6 +193,8 @@ class IO_smart_iterator
 
 		bool LOCK(int *val, int tmout);
 		void priority_queue (int *acq_seq, int *seq_flag);
+
+		void ascend_queue(index_t idx);
 };
 
 #endif

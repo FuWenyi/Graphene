@@ -27,6 +27,7 @@ class cache_driver
 		index_t load_blk_off;
 		index_t coarse_grain_off;
 		bit_t *reqt_blk_bitmap;
+		struct blk **blk_al;
 		index_t *reqt_list;
 		index_t *reqt_blk_count;
 		vertex_t *blk_beg_vert;
@@ -61,6 +62,7 @@ class cache_driver
 		cache_driver(	
 			int fd_csr,
 			bit_t* &reqt_blk_bitmap,
+			struct blk **blk_al,
 			index_t *reqt_blk_count,
 			const index_t total_blks,
 			vertex_t *blk_beg_vert,
@@ -73,6 +75,7 @@ class cache_driver
 		cache_driver(	
 			int fd_csr,
 			bit_t* &reqt_blk_bitmap,
+			struct blk **blk_al,
 			index_t* &reqt_list,
 			index_t *reqt_blk_count,
 			const index_t total_blks,

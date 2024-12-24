@@ -32,6 +32,10 @@
 #define PROCESSING	8959//iterator 
 #define PROCESSED		6364//iterator
 
+#define ACTIVE_LIST_SIZE    256
+#define EDGE_CROSS_PAGE 0x80000000
+#define PAGE_MASK 0x7FFFFFFF
+
 inline off_t fsize(const char *filename) {
     struct stat st; 
     if (stat(filename, &st) == 0)
@@ -59,7 +63,7 @@ struct chunk
 struct blk
 {
 	vertex_t *buff;
-	index_t active_num;
+	index_t sz;
 };
 
 struct io_req 

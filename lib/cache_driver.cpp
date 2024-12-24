@@ -5,10 +5,13 @@
 #include <fcntl.h>
 #include <sys/uio.h>
 #include <stdint.h>
+#include <cstring>
+
 //bitmap + req_list together
 cache_driver::cache_driver(
 			int fd_csr,
 			bit_t* &reqt_blk_bitmap,
+			struct blk **blk_al,
 			index_t* &reqt_list,
 			index_t *reqt_blk_count,
 			const index_t total_blks,
@@ -18,7 +21,7 @@ cache_driver::cache_driver(
 			const size_t chunk_sz,
 			const index_t io_limit,
 			index_t MAX_USELESS):
-	cache_driver(fd_csr, reqt_blk_bitmap, reqt_blk_count,
+	cache_driver(fd_csr, reqt_blk_bitmap, blk_al, reqt_blk_count,
 			total_blks, blk_beg_vert, io_conserve, 
 			num_chunks, chunk_sz, io_limit, MAX_USELESS)
 {
@@ -30,6 +33,7 @@ cache_driver::cache_driver(
 cache_driver::cache_driver(
 			int fd_csr,
 			bit_t* &reqt_blk_bitmap,
+			struct blk **blk_al,
 			index_t *reqt_blk_count,
 			const index_t total_blks,
 			vertex_t *blk_beg_vert,
@@ -42,6 +46,7 @@ cache_driver::cache_driver(
 	reqt_blk_count(reqt_blk_count),
 	chunk_sz(chunk_sz),io_conserve(io_conserve),
 	reqt_blk_bitmap(reqt_blk_bitmap),
+	blk_al(blk_al), 
 	total_blks(total_blks),io_limit(io_limit),
 	blk_beg_vert(blk_beg_vert),MAX_USELESS(MAX_USELESS)
 {
@@ -317,6 +322,8 @@ void cache_driver::load_chunk()
 			cache[chunk_id]->beg_vert= blk_beg_vert[beg_blk_id];
 			cache[chunk_id]->blk_beg_off=VERT_PER_BLK * beg_blk_id;
 			cache[chunk_id]->load_sz = VERT_PER_BLK;
+			std::memcpy(cache[chunk_id]->active_list, blk_al[load_blk_off]->buff, blk_al[load_blk_off]->sz * sizeof(vertex_t));
+			cache[chunk_id]->active_num = blk_al[load_blk_off]->sz;
 			//打印每个chunk的开始点
 			//fprintf(fp, "start request:\nbeg_vert = %d, chunk id = %d, chunk status = %d\n",cache[chunk_id]->beg_vert, chunk_id, cache[chunk_id]->status);
 
@@ -332,8 +339,10 @@ void cache_driver::load_chunk()
 			while(load_blk_off<total_blks)
 			{
 				++load_blk_off;
-				if(load_blk_off+1-beg_blk_id>blk_per_chunk) break;
-				
+				if(load_blk_off+1-beg_blk_id>blk_per_chunk) {
+					// TODO: record chunk id: beg_vert: active list
+					break;
+				}
 				if(reqt_blk_bitmap[load_blk_off>>3] & (1<<(load_blk_off&7)))
 				{
 					//continuous_useless_blk=0;
@@ -341,7 +350,9 @@ void cache_driver::load_chunk()
 					--(*reqt_blk_count);
 					reqt_blk_bitmap[load_blk_off>>3] &= (~(1<<(load_blk_off&7)));
 					cache[chunk_id]->load_sz=(load_blk_off+1-beg_blk_id)*VERT_PER_BLK;
-					
+					std::memcpy(cache[chunk_id]->active_list + cache[chunk_id]->active_num, blk_al[load_blk_off]->buff, blk_al[load_blk_off]->sz * sizeof(vertex_t));
+					cache[chunk_id]->active_num += blk_al[load_blk_off]->sz;
+
 					//init load_blk_off for next level scanning
 					if(*reqt_blk_count == 0)
 					{
@@ -354,7 +365,10 @@ void cache_driver::load_chunk()
 					// 如果 MAX_USELESS 个 block 内还没有有效 block，就停止探索
 					continuous_useless_blk++;
 					// ++req_blk_num;
-					if(continuous_useless_blk==MAX_USELESS) break;
+					if(continuous_useless_blk==MAX_USELESS) {
+						// TODO: record chunk active list
+						break;
+					}
 				}
 			}
 			//每执行完while生成一个request

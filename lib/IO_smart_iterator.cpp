@@ -2,6 +2,8 @@
 #include <unistd.h>
 #include <asm/mman.h>
 #include <omp.h>
+#include <algorithm>
+
 //PageRank requires buff_source and buff_dest 
 //have same type as vertex_t. 
 IO_smart_iterator::IO_smart_iterator(
@@ -66,6 +68,7 @@ IO_smart_iterator::IO_smart_iterator(
 	cd = new cache_driver(
 			fd_csr, 
 			reqt_blk_bitmap,
+			blk_al,
 			reqt_list,
 			&reqt_blk_count,
 			total_blks,
@@ -134,6 +137,7 @@ IO_smart_iterator::IO_smart_iterator(
 	cd = new cache_driver(
 			fd_csr, 
 			reqt_blk_bitmap,
+			blk_al,
 			reqt_list,
 			&reqt_blk_count,
 			total_blks,
@@ -318,6 +322,7 @@ IO_smart_iterator::IO_smart_iterator(
 	my_level = 0;
 	io_conserve = false;
 	beg_pos_ptr = beg_pos;
+	v2p_pos_ptr = v2p_pos;
 	reqt_blk_count = 0;
 	total_blks = (page_num + PAGE_PER_BLK - 1) & ~(PAGE_PER_BLK - 1);
 
@@ -340,7 +345,7 @@ IO_smart_iterator::IO_smart_iterator(
 		perror("blk_beg_vert mmap");
 		exit(-1);
 	}
-	memset(reqt_blk_bitmap, 0, ((total_blks>>3)+1) * sizeof(bit_t));
+	memset(reqt_blk_bitmap, 0, ((total_blks>>3)+8) * sizeof(bit_t));
 	memset(blk_beg_vert, 0, total_blks * sizeof(vertex_t));
 
 
@@ -358,7 +363,7 @@ IO_smart_iterator::IO_smart_iterator(
 
 	//using a big buffer for block's active vertex list, to be modified later
 	blk_al_buff=NULL; 
-	blk_al_buff=(vertex_t *)mmap(NULL,chunk_sz*num_chunks,
+	blk_al_buff=(vertex_t *)mmap(NULL, total_blks * sizeof(vertex_t) * ACTIVE_LIST_SIZE,
 		PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
 		| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
 	if(blk_al_buff==MAP_FAILED)
@@ -367,15 +372,25 @@ IO_smart_iterator::IO_smart_iterator(
 		exit(-1);
 	}
 
+	//alloc blk struct space
+	blk_al = new struct blk*[total_blks];
+	for(index_t i=0;i<total_blks;i++)
+	{
+		blk_al[i] = new struct blk;
+		blk_al[i]->sz = -1;
+		blk_al[i]->buff = &(blk_al_buff[i*ACTIVE_LIST_SIZE]);
+	}
+
 }
 
 //Dealloc function
 IO_smart_iterator::~IO_smart_iterator()
 {
 	delete cd;
-	munmap(reqt_blk_bitmap, ((total_blks>>3)+1) * sizeof(bit_t));
+	munmap(reqt_blk_bitmap, ((total_blks>>3)+8) * sizeof(bit_t));
 	munmap(blk_beg_vert, sizeof(vertex_t) * total_blks);
 	munmap(beg_pos_ptr, sizeof(index_t)*(row_ranger_end - row_ranger_beg + 1));
+	munmap(blk_al_buff, total_blks * sizeof(vertex_t) * ACTIVE_LIST_SIZE);
 }
 
 
@@ -467,6 +482,12 @@ void IO_smart_iterator::front_sort_cpu()
 	//		num_front, this->front_queue[comp_tid][0], this->front_queue[comp_tid][1]);
 }
 
+void IO_smart_iterator::ascend_queue(index_t idx) {
+	vertex_t *buff = blk_al[idx]->buff;
+	index_t sz = blk_al[idx]->sz;
+	std::sort(buff, buff + sz);
+}
+
 //-Translate frontiers to requested data blks
 void IO_smart_iterator::req_translator_queue()
 {
@@ -490,6 +511,35 @@ void IO_smart_iterator::req_translator_queue()
 			{
 				for(index_t m = 0; m < front_count[row_ptr * num_cols + col_ptr]; m ++)
 				{
+					// active vertex idx, other partition's active vertex(dest) may be my src
+					vertex_t i = front_queue[row_ptr * num_cols + col_ptr][m];
+					if(i < row_ranger_beg || i >= row_ranger_end) 
+						continue;
+					//one frontier's neighbor may span across multiple blocks
+					index_t beg_page_ptr = v2p_pos_ptr[i - row_ranger_beg];
+					index_t end_page_ptr = v2p_pos_ptr[i+1 - row_ranger_beg] & PAGE_MASK;
+
+					index_t beg_blk_ptr = (beg_page_ptr & PAGE_MASK) /PAGE_PER_BLK;
+					index_t end_blk_ptr = end_page_ptr /PAGE_PER_BLK;
+
+					// next vertex's edge is in a new block and this vertex's edge not cross block
+					if ((end_page_ptr % PAGE_PER_BLK == 0) && ((beg_page_ptr & EDGE_CROSS_PAGE) == 0)) 
+						-- end_blk_ptr;
+
+					for(index_t j=beg_blk_ptr; j<end_blk_ptr; ++j)
+					{
+						//assuming it is using bit_t
+						if((reqt_blk_bitmap[j>>3] & (1<<(j&7))) == 0)
+						{
+							++reqt_blk_count;
+							reqt_blk_bitmap[j>>3] |= (1<<(j&7));
+						}
+						blk_al[j]->buff[blk_al[j]->sz] = i;
+						++ blk_al[j]->sz;
+						// debug: sz need's to be reset
+					}
+					{
+					/*
 					vertex_t i = front_queue[row_ptr * num_cols + col_ptr][m];
 					if(i < row_ranger_beg || i >= row_ranger_end) continue;
 
@@ -510,16 +560,29 @@ void IO_smart_iterator::req_translator_queue()
 							++reqt_blk_count;
 							reqt_blk_bitmap[j>>3] |= (1<<(j&7));
 						}
+					}*/
 					}
 				}
 			}
 		}
-	}	
+	}
+
+	// make each blk's active vertex queue ascending
+	for(index_t j=0; j< total_blks; ++j)
+	{
+		// this blk is active
+		if((reqt_blk_bitmap[j>>3] & (1<<(j&7))))
+		{
+			ascend_queue(j);
+		}
+		// debug: sz need's to be reset
+	}
+
 	//means we start a new iteration
 	//we should do some IO-conserving work in next()
 //	if(my_level < usr_level)
 //	{
-		io_conserve = true;
+	io_conserve = true;
 //		my_level = usr_level;
 	//}
 	
