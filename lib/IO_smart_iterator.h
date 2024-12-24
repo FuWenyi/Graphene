@@ -57,6 +57,7 @@ class IO_smart_iterator
 		index_t PAGE_SIZE_BYTE;
 		index_t PAGE_PER_BLK;
 		index_t *reqt_list;
+		vertex_t *blk_al_buff;			// 存放每个 block active vertex list 的 buffer
 		double io_time;
 		double wait_io_time;
 		double wait_comp_time;

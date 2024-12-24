@@ -355,6 +355,18 @@ IO_smart_iterator::IO_smart_iterator(
 				break;
 			}
 	}
+
+	//using a big buffer for block's active vertex list, to be modified later
+	blk_al_buff=NULL; 
+	blk_al_buff=(vertex_t *)mmap(NULL,chunk_sz*num_chunks,
+		PROT_READ | PROT_WRITE,MAP_PRIVATE | MAP_ANONYMOUS 
+		| MAP_HUGETLB | MAP_HUGE_2MB, 0, 0);
+	if(blk_al_buff==MAP_FAILED)
+	{
+		perror("active vertex buffer mmap");
+		exit(-1);
+	}
+
 }
 
 //Dealloc function

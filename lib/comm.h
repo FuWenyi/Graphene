@@ -55,6 +55,13 @@ struct chunk
 	index_t load_sz;//-#verts loaded in this chunk
 };
 
+// for each block's active list
+struct blk
+{
+	vertex_t *buff;
+	index_t active_num;
+};
+
 struct io_req 
 {
 	io_context_t ctx;//aio context
@@ -65,7 +72,7 @@ struct io_req
 
 #define READ_BLK 			(1<<24)
 //#define NUM_THDS  		16	
-//#define BLK_SZ				512
-//#define VERT_PER_BLK	64
+//#define BLK_SZ			512
+//#define VERT_PER_BLK		64
 #define MAX_EVENTS	  (unsigned int)64
 #endif
