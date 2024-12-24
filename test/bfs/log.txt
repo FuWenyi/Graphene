@@ -189,3 +189,176 @@ Total io time: 0.708331 second(s)
 Total comp time: 0.594709 second(s)
 Total vertex: 3067216
 Total io(0-15): 0 Total io(16-31): 0 Total io(32-47): 0 Total io(48-63): 0
+
+修改 index_t 类型为 int 后 2KB
+[fuwenyi@localhost bfs]$ sudo ./aio_bfs.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd com-orkut.ungraph.txt-split_beg com-orkut.ungraph.txt-split_csr 16384 65536 32 16 2048 1 1
+[sudo] password for fuwenyi: 
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs source cache_sz(#bytes)
+./aio_bfs.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd com-orkut.ungraph.txt-split_beg com-orkut.ungraph.txt-split_csr 16384 65536 32 16 2048 1 1 
+Vertex count: 3072627
+col-ranger file is found
+iostat -x 1 -k -p > ./random_20_log/iostat_bfs.log&
+use active queue
+sh: ./random_20_log/iostat_bfs.log: No such file or directory
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 12 0.00142002 5.00679e-05 0(0.0011158,0.000179052)  0.00136304 1.19209e-06 2048 5.96046e-06 0.000425816 1 0.000176191 48
+Block's active vertice: total_blks: 228878
+1 
+active block cnt: 1
+active list: 2 3 4 5 6 7 8 9 10 11 12 13 
+use active queue
+@level-1-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 469 0.000518799 7.86781e-06 0(0.000468254,3.98159e-05)  0.000499964 9.53674e-07 4096 9.05991e-06 1.81198e-05 1 3.79086e-05 2244
+Block's active vertice: total_blks: 228878
+8 5 
+active block cnt: 2
+use active queue
+@level-2-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 26611 0.00197792 2.19345e-05 0(0.00129914,0.0003829)  0.00140858 6.12736e-05 483328 0.000545502 0.000144958 1 0.000323057 145676
+Block's active vertice: total_blks: 228878
+4 5 6 3 7 4 3 6 6 5 3 5 6 5 7 19 2 1 1 1 1 2 1 2 2 1 1 1 1 2 1 1 1 1 1 1 1 1 1 1 1 1 12 13 1 1 1 1 1 2 1 1 1 1 1 1 1 1 1 3 2 2 1 1 1 1 1 1 1 1 5 8 5 5 12 12 10 10 1 1 1 1 2 1 1 1 1 4 7 7 3 7 15 1 1 7 9 7 7 6 1 1 4 6 7 5 6 7 4 11 4 10 15 1 5 5 20 23 7 6 7 6 5 13 14 1 1 1 1 1 1 
+active block cnt: 131
+use active queue
+@level-3-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 777010 0.0670629 0.00118184 0(0.0490117,0.0105588)  0.0412357 0.00126219 53374976 0.0246403 0.0427604 36 0.00906563 10353388
+Block's active vertice: total_blks: 228878
+
+active block cnt: 12517
+use active vertex value array
+@level-4-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 2241220 0.411321 0.0303919 0(0.162082,0.216785)  0.120037 0.000485659 430651392 0.260888 0.157324 113 0.215585 196723736
+Block's active vertice: total_blks: 228878
+
+active block cnt: 168353
+use active vertex value array
+@level-5-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 26631 0.473924 0.0456979 0(0.187618,0.21663)  0.130474 0.00561905 361531392 0.297747 0.173423 90 0.209405 260957040
+Block's active vertice: total_blks: 228878
+
+active block cnt: 168528
+use active queue
+@level-6-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 487 0.0298371 0.00109005 0(0.00715351,0.0212357)  0.0242283 8.63075e-05 21358592 0.00451159 0.00552273 13 0.0210476 557764
+Block's active vertice: total_blks: 228878
+
+active block cnt: 6064
+use active queue
+@level-7-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 0 0.00381398 3.98159e-05 0(0.00205064,0.00158095)  0.00345612 4.02927e-05 2056192 0.000315905 0.000783205 3 0.00154185 436
+Block's active vertice: total_blks: 228878
+
+active block cnt: 329
+active list: 
+iostat: no process found
+Total time: 0.989876 second(s)
+Total io time: 0.878191 second(s)
+Total comp time: 0.588663 second(s)
+Total vertex: 3072440
+Total io(0-15): 0 Total io(16-31): 0 Total io(32-47): 0 Total io(48-63): 0
+[fuwenyi@localhost bfs]$ 
+
+512B
+[fuwenyi@localhost bfs]$ sudo ./aio_bfs.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd com-orkut.ungraph.txt-split_beg com-orkut.ungraph.txt-split_csr 16384 65536 32 16 2048 1 1
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs source cache_sz(#bytes)
+./aio_bfs.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd com-orkut.ungraph.txt-split_beg com-orkut.ungraph.txt-split_csr 16384 65536 32 16 2048 1 1 
+Vertex count: 3072627
+col-ranger file is found
+iostat -x 1 -k -p > ./random_20_log/iostat_bfs.log&
+use active queue
+sh: ./random_20_log/iostat_bfs.log: No such file or directory
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 12 0.00140214 5.31673e-05 0(0.00111604,0.000158072)  0.00133896 0 512 6.91414e-06 0.000438929 1 0.000156879 48
+Block's active vertice: total_blks: 915509
+1 
+active block cnt: 1
+active list: 2 3 4 5 6 7 8 9 10 11 12 13 
+use active queue
+@level-1-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 469 0.00052309 8.10623e-06 0(0.000473499,3.71933e-05)  0.000505209 0 2560 8.82149e-06 1.78814e-05 1 3.71933e-05 2244
+Block's active vertice: total_blks: 915509
+2 3 2 4 5 
+active block cnt: 5
+use active queue
+@level-2-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 26611 0.00379109 2.69413e-05 0(0.00322247,0.000244141)  0.00318599 5.55515e-05 238080 0.000576019 0.000610113 1 0.000176907 145676
+Block's active vertice: total_blks: 915509
+1 3 1 2 3 3 1 1 3 2 2 2 2 1 2 1 2 3 2 3 1 1 1 4 3 1 1 1 2 2 3 1 1 3 3 2 1 1 4 1 1 1 3 1 1 3 2 2 3 2 3 1 3 1 3 1 2 2 5 1 2 7 5 8 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 1 1 1 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 5 6 6 8 1 1 1 1 1 1 1 1 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 2 2 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 2 3 2 2 3 3 3 1 3 2 2 1 3 3 1 5 3 3 4 5 3 4 3 4 2 3 3 2 7 3 1 1 1 1 1 1 1 1 1 1 1 1 2 1 2 2 1 2 3 4 3 2 3 2 1 2 1 2 2 2 2 4 3 9 5 1 1 1 1 3 3 2 2 2 3 5 2 4 2 2 2 7 1 3 4 1 1 1 1 1 2 1 2 2 2 1 3 3 3 1 3 3 2 2 2 2 2 3 3 1 3 2 4 1 1 3 1 2 4 5 3 2 1 1 2 3 1 2 3 7 5 4 8 1 1 1 1 4 2 1 5 5 6 6 6 17 2 4 3 3 2 2 3 2 3 2 2 2 2 2 4 1 4 3 1 3 1 3 1 3 6 4 2 1 2 5 9 1 1 1 1 1 1 
+active block cnt: 352
+use active queue
+@level-3-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 777010 0.0859699 0.00137591 0(0.0788412,0.00175333)  0.0608644 0.00078845 23319552 0.0237234 0.0713758 68 0.000506639 10353388
+Block's active vertice: total_blks: 915509
+
+active block cnt: 29150
+use active vertex value array
+@level-4-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 2241220 0.537628 0.033618 0(0.400069,0.103548)  0.227229 7.77245e-05 351027712 0.276778 0.388255 281 0.102199 196723736
+Block's active vertice: total_blks: 915509
+
+active block cnt: 527977
+use active vertex value array
+@level-5-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 26631 0.530374 0.055264 0(0.19493,0.254881)  0.182625 0.00595188 345030144 0.292473 0.174898 120 0.246922 260957040
+Block's active vertice: total_blks: 915509
+
+active block cnt: 617026
+use active queue
+@level-6-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 487 0.023679 0.0015111 0(0.0125427,0.0093627)  0.0183442 7.31945e-05 11973632 0.00382185 0.00865459 28 0.00914288 557764
+Block's active vertice: total_blks: 915509
+
+active block cnt: 11506
+use active queue
+@level-7-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 0 0.00376701 3.38554e-05 0(0.00342536,0.000268459)  0.00359058 1.16825e-05 467456 0.000141621 0.000903845 4 0.000233173 436
+Block's active vertice: total_blks: 915509
+
+active block cnt: 365
+active list: 
+iostat: no process found
+Total time: 1.18713 second(s)
+Total io time: 1.06487 second(s)
+Total comp time: 0.597529 second(s)
+Total vertex: 3072440
+Total io(0-15): 0 Total io(16-31): 0 Total io(32-47): 0 Total io(48-63): 0
+
+4KB
+[fuwenyi@localhost bfs]$ sudo ./aio_bfs.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd com-orkut.ungraph.txt-split_beg com-orkut.ungraph.txt-split_csr 16384 65536 32 16 2048 1 1
+Format: /path/to/exe #row_partitions #col_partitions thread_count /path/to/beg_pos_dir /path/to/csr_dir beg_header csr_header num_chunks chunk_sz (#bytes) concurr_IO_ctx max_continuous_useless_blk ring_vert_count num_buffs source cache_sz(#bytes)
+./aio_bfs.bin 1 1 2 /home/fuwenyi/ssd /home/fuwenyi/ssd com-orkut.ungraph.txt-split_beg com-orkut.ungraph.txt-split_csr 16384 65536 32 16 2048 1 1 
+Vertex count: 3072627
+col-ranger file is found
+iostat -x 1 -k -p > ./random_20_log/iostat_bfs.log&
+use active queue
+sh: ./random_20_log/iostat_bfs.log: No such file or directory
+@level-0-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 12 0.00142884 5.19753e-05 0(0.0011189,0.000176907)  0.00136781 9.53674e-07 4096 7.15256e-06 0.000427008 1 0.000176907 48
+Block's active vertice: total_blks: 114439
+1 
+active block cnt: 1
+active list: 2 3 4 5 6 7 8 9 10 11 12 13 
+use active queue
+@level-1-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 469 0.000527143 9.05991e-06 0(0.000466824,4.81606e-05)  0.000508308 0 4096 8.82149e-06 1.78814e-05 1 4.69685e-05 2244
+Block's active vertice: total_blks: 114439
+12 
+active block cnt: 1
+use active queue
+@level-2-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 26611 0.00183702 2.31266e-05 0(0.00108218,0.000466347)  0.00121999 4.24385e-05 552960 0.000591993 0.000141859 1 0.000379086 145676
+Block's active vertice: total_blks: 114439
+4 10 9 6 11 7 10 11 19 2 1 1 1 1 2 2 2 1 1 1 1 2 1 1 1 1 1 2 1 1 1 1 1 12 13 1 1 1 1 3 1 1 1 1 1 1 1 1 1 4 2 1 1 1 1 1 1 1 1 5 12 16 21 10 1 1 2 1 1 1 10 9 21 1 7 15 7 6 1 1 9 11 12 14 13 15 5 24 29 12 10 26 1 1 1 1 1 1 
+active block cnt: 98
+use active queue
+@level-3-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 777010 0.0679879 0.00116897 0(0.0460241,0.0125203)  0.039237 0.00158811 73928704 0.0275781 0.0374274 29 0.0106502 10353388
+Block's active vertice: total_blks: 114439
+
+active block cnt: 8938
+use active vertex value array
+@level-4-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 2241220 0.324243 0.0269001 0(0.220767,0.0750942)  0.0364473 0.0003438 444903424 0.260889 0.217457 109 0.0740621 196723736
+Block's active vertice: total_blks: 114439
+
+active block cnt: 95158
+use active vertex value array
+@level-5-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 26631 0.368981 0.0437779 0(0.0832305,0.195181)  0.0200257 0.0110209 365690880 0.305173 0.0587242 90 0.181147 260957040
+Block's active vertice: total_blks: 114439
+
+active block cnt: 86488
+use active queue
+@level-6-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 487 0.0207362 0.00106907 0(0.00539541,0.0137885)  0.0154116 0.000110626 27406336 0.00425339 0.00419211 11 0.0135989 557764
+Block's active vertice: total_blks: 114439
+
+active block cnt: 4142
+use active queue
+@level-7-font-leveltime-converttm-iotm-waitiotm-waitcomptm-iosize-usesize: 0 0.00347495 2.7895e-05 0(0.00134826,0.00195789)  0.00301743 2.86102e-05 3547136 0.000428677 0.000571251 2 0.00191474 436
+Block's active vertice: total_blks: 114439
+
+active block cnt: 301
+active list: 
+iostat: no process found
+Total time: 0.789216 second(s)
+Total io time: 0.658667 second(s)
+Total comp time: 0.59893 second(s)
+Total vertex: 3072440
+Total io(0-15): 0 Total io(16-31): 0 Total io(32-47): 0 Total io(48-63): 0
